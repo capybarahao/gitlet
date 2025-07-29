@@ -5,6 +5,7 @@
 Get started in 7.25
 - logic delegation
 - what in main what not, if not then in where
+- 
 ## Classes and Data Structures
 
 ### Commit
