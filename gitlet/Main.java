@@ -1,7 +1,7 @@
 package gitlet;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Qiyue Hao
  */
 public class Main {
 
@@ -11,6 +11,9 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
+        // If a user doesn’t input any arguments, print the message
+        // Please enter a command.
+        // and exit.
         if (args.length == 0) {
             // call gitlet help?
 
