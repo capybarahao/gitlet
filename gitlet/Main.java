@@ -7,6 +7,7 @@ public class Main {
 
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ...
+     *  init
      *  add
      */
     public static void main(String[] args) {
@@ -22,7 +23,7 @@ public class Main {
         switch(firstArg) {
             case "init":
                 validateNumArgs("init", args, 1);
-
+                Repository.init();
                 break;
             case "add":
                 validateNumArgs("add", args, 2);
@@ -37,10 +38,6 @@ public class Main {
                 Utils.message("No command with that name exists.");
                 System.exit(0);
         }
-    }
-    public static void init() {
-        Commit initial = new Commit("initial commit", null);
-
     }
 
     /**
