@@ -59,4 +59,12 @@ public class Main {
             System.exit(0);
         }
     }
+    // If a user inputs a command that requires being in an initialized Gitlet working directory
+    // (i.e., one containing a .gitlet subdirectory), but is not in such a directory,
+    // print the message
+    // Not in an initialized Gitlet directory.
+    public static void validateRepo(String cmd) {
+        // if .gitlet subdirectory not exist
+
+    }
 }
