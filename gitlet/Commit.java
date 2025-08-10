@@ -3,7 +3,9 @@ package gitlet;
 // TODO: any imports you need here
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,6 +41,16 @@ public class Commit implements Serializable {
         this.message = message;
         this.parentA = parentA;
         this.parentB = parentB;
-        timestamp = LocalDateTime.now().toString();
+        timestamp = ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toString();
+        // Output:
     }
+
+    // factory method for init()
+    public static Commit createInitialCommit() {
+        Commit initial = new Commit("initial commit", null, null);
+        initial.timestamp = ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC). toString();
+        // Output: 1970-01-01T00:00:00Z
+        return initial;
+    }
+
 }

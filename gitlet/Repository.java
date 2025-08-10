@@ -43,7 +43,14 @@ public class Repository {
     // Should print the error message
     // A Gitlet version-control system already exists in the current directory.
     public static void init() {
-        Commit initial = new Commit("initial commit", null, null);
-        initial.timestamp = "1";
+        // if .gitlet dir already exist then print error msg and exit
+
+        // create .gitlet dir
+
+
+        Commit initial = Commit.createInitialCommit();
+        String initialSha = Utils.sha1(initial);
+        // write the commit sha to file master and head
+
     }
 }
