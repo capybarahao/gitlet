@@ -45,7 +45,7 @@ public class Commit implements Serializable {
         // Output:
     }
 
-    // factory method for init()
+    // factory method only for init()
     public static Commit createInitialCommit() {
         Commit initial = new Commit("initial commit", null, null);
         initial.timestamp = ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC). toString();

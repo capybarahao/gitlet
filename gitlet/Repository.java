@@ -1,9 +1,11 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 import static gitlet.Utils.*;
+import static gitlet.Utils.writeContents;
 
 // TODO: any imports you need here
 
@@ -11,7 +13,7 @@ import static gitlet.Utils.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Qiyue Hao
  */
 public class Repository {
     /**
@@ -24,8 +26,20 @@ public class Repository {
 
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
+    //    .gitlet/ -- top level folder for all persistent data
+    //      - heads/ -- folder containing branch file
+    //          - master -- file containing this branch's head commit id
+    //          - anotherBranch
+    //      - HEAD -- file containing ref to heads folder's branch file "heads/master"
+
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
+    // The heads folder
+    public static final File heads = join(GITLET_DIR, "heads");
+    // The head file, containing head ref info
+    public static final File HEAD = join(GITLET_DIR, "HEAD");
+    // The master file, containing master branch info
+    public static final File master = join(heads, "master");
 
 
     //Creates a new Gitlet version-control system in the current directory.
@@ -42,15 +56,29 @@ public class Repository {
     // it should abort. It should NOT overwrite the existing system with a new one.
     // Should print the error message
     // A Gitlet version-control system already exists in the current directory.
-    public static void init() {
+    public static void init() throws IOException {
         // if .gitlet dir already exist then print error msg and exit
+        if (GITLET_DIR.exists()) {
+            message("A Gitlet version-control system already exists in the current directory.");
+            System.exit(0);
+        }
+        // creates any necessary folders or files
+        GITLET_DIR.mkdir();
+        heads.mkdir();
+        HEAD.createNewFile();
+        master.createNewFile();
+        // set head to master branch "heads/master"
+        String branchName = "master";
+        String headRef = "heads/" + branchName;
+        writeContents(HEAD, headRef);
 
-        // create .gitlet dir
-
-
+        // create initial commit
         Commit initial = Commit.createInitialCommit();
-        String initialSha = Utils.sha1(initial);
-        // write the commit sha to file master and head
+        String initialSha = sha1(initial);
 
+        // write the commit sha to head, (which leads to master)
+        String ref = readContentsAsString(HEAD);
+        File outfile = join(GITLET_DIR, ref);
+        writeContents(outfile, initialSha);
     }
 }
