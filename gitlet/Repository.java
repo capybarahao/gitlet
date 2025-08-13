@@ -35,11 +35,11 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     // The heads folder
-    public static final File heads = join(GITLET_DIR, "heads");
+    public static final File HEADS_DIR = join(GITLET_DIR, "heads");
     // The head file, containing head ref info
     public static final File HEAD = join(GITLET_DIR, "HEAD");
     // The master file, containing master branch info
-    public static final File master = join(heads, "master");
+    public static final File master = join(HEADS_DIR, "master");
 
 
     //Creates a new Gitlet version-control system in the current directory.
@@ -64,7 +64,7 @@ public class Repository {
         }
         // creates any necessary folders or files
         GITLET_DIR.mkdir();
-        heads.mkdir();
+        HEADS_DIR.mkdir();
         HEAD.createNewFile();
         master.createNewFile();
         // set head to master branch "heads/master"
@@ -74,11 +74,16 @@ public class Repository {
 
         // create initial commit
         Commit initial = Commit.createInitialCommit();
-        String initialSha = sha1(initial);
+
+        // write commit object to file
+
+
+        // generate sha for commit object
+        String Sha = sha1(initial);
 
         // write the commit sha to head, (which leads to master)
         String ref = readContentsAsString(HEAD);
-        File outfile = join(GITLET_DIR, ref);
-        writeContents(outfile, initialSha);
+        File branch = join(GITLET_DIR, ref);
+        writeContents(branch, Sha);
     }
 }
