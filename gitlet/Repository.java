@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 import static gitlet.Utils.*;
 import static gitlet.Utils.writeContents;
@@ -30,12 +29,15 @@ public class Repository {
     //      - heads/ -- folder containing branch file
     //          - master -- file containing this branch's head commit id
     //          - anotherBranch
+    //      - objects/ -- folder containing blob and commit file
     //      - HEAD -- file containing ref to heads folder's branch file "heads/master"
 
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     // The heads folder
     public static final File HEADS_DIR = join(GITLET_DIR, "heads");
+
+    public static final File OBJ_DIR = join(GITLET_DIR, "objects");
     // The head file, containing head ref info
     public static final File HEAD = join(GITLET_DIR, "HEAD");
     // The master file, containing master branch info
@@ -75,15 +77,31 @@ public class Repository {
         // create initial commit
         Commit initial = Commit.createInitialCommit();
 
-        // write commit object to file
-
-
         // generate sha for commit object
         String Sha = sha1(initial);
 
+        // write commit object to file
+        File commitFile = join(OBJ_DIR, Sha);
+        writeObject(commitFile, initial);
+
         // write the commit sha to head, (which leads to master)
         String ref = readContentsAsString(HEAD);
-        File branch = join(GITLET_DIR, ref);
-        writeContents(branch, Sha);
+        File branchFile = join(GITLET_DIR, ref);
+        writeContents(branchFile, Sha);
     }
+
+    // java gitlet.Main add [file name]
+    // Adds a copy of the file as it currently exists to the staging area (see the description of the commit command)
+    // For this reason, adding a file is also called staging the file for addition
+    // Staging an already-staged file overwrites the previous entry in the staging area with the new contents
+    // The staging area should be somewhere in .gitlet.
+    // If the current working version of the file is identical to the version in the current commit
+    // do not stage it to be added, and remove it from the staging area if it is already there
+    // (as can happen when a file is changed, added, and then changed back to it’s original version).
+    // The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
+    //
+    //Failure cases: If the file does not exist, print the error message
+    // File does not exist.
+    // and exit without changing anything.
+
 }

@@ -32,7 +32,7 @@ public class Commit implements Serializable {
 
     private String timestamp;
 
-    // a mapping of file names to blob references
+    // a mapping of file names "wug.txt" to blob references "d12da..."
     // maybe a map of file name / blob Sha1?
     // Use: put(K, V), get(K)
     private Map<String, String> fileToblob = new HashMap<>();

@@ -13,7 +13,6 @@ public class Main {
      *  add
      */
     public static void main(String[] args) throws IOException {
-        // TODO: what if args is empty?
         // If a user doesn’t input any arguments, print the message
         // Please enter a command.
         // and exit.
