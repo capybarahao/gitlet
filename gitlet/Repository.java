@@ -67,6 +67,7 @@ public class Repository {
         // creates any necessary folders or files
         GITLET_DIR.mkdir();
         HEADS_DIR.mkdir();
+        OBJ_DIR.mkdir();
         HEAD.createNewFile();
         master.createNewFile();
         // set head to master branch "heads/master"
@@ -78,10 +79,11 @@ public class Repository {
         Commit initial = Commit.createInitialCommit();
 
         // generate sha for commit object
-        String Sha = sha1(initial);
+        String Sha = sha1(serialize(initial));
 
         // write commit object to file
         File commitFile = join(OBJ_DIR, Sha);
+        commitFile.createNewFile();
         writeObject(commitFile, initial);
 
         // write the commit sha to head, (which leads to master)
