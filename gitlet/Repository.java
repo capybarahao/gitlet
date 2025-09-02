@@ -29,7 +29,9 @@ public class Repository {
     //      - heads/ -- folder containing branch file
     //          - master -- file containing this branch's head commit id
     //          - anotherBranch
-    //      - objects/ -- folder containing blob and commit file
+    //      - objects/ -- folder containing blob and commit files
+    //          - commits
+    //          - blobs
     //      - HEAD -- file containing ref to heads folder's branch file "heads/master"
 
     /** The .gitlet directory. */
@@ -38,6 +40,8 @@ public class Repository {
     public static final File HEADS_DIR = join(GITLET_DIR, "heads");
 
     public static final File OBJ_DIR = join(GITLET_DIR, "objects");
+    public static final File CMTS_DIR = join(OBJ_DIR, "commits");
+    public static final File BLOBS_DIR = join(OBJ_DIR, "blobs");
     // The head file, containing head ref info
     public static final File HEAD = join(GITLET_DIR, "HEAD");
     // The master file, containing master branch info
@@ -68,11 +72,13 @@ public class Repository {
         GITLET_DIR.mkdir();
         HEADS_DIR.mkdir();
         OBJ_DIR.mkdir();
+        CMTS_DIR.mkdir();
+        BLOBS_DIR.mkdir();
         HEAD.createNewFile();
         master.createNewFile();
         // set head to master branch "heads/master"
         String branchName = "master";
-        String headRef = "heads/" + branchName;
+        String headRef = "heads" + System.getProperty("file.separator") + branchName;
         writeContents(HEAD, headRef);
 
         // create initial commit
@@ -82,7 +88,7 @@ public class Repository {
         String Sha = sha1(serialize(initial));
 
         // write commit object to file
-        File commitFile = join(OBJ_DIR, Sha);
+        File commitFile = join(CMTS_DIR, Sha);
         commitFile.createNewFile();
         writeObject(commitFile, initial);
 
@@ -105,5 +111,12 @@ public class Repository {
     //Failure cases: If the file does not exist, print the error message
     // File does not exist.
     // and exit without changing anything.
+    public static void add(String fileName) {
+        File fileToAdd = join(CWD, fileName);
+        readContents(fileToAdd);
+
+        writeObject(file, stagedForAdd);
+
+    }
 
 }

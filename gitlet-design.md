@@ -11,6 +11,9 @@ Get started in 7.25
 - 读spec serialization 部分 关于 runtime map between these strings and the runtime objects they refer to
 - hashes for commits and hashes for blobs:hash in an extra word for each object that has one value for blobs and another for commits.
 - Master / other branch name = some commit Sha1, also Head = some commit Sha1, where to store this info?
+- file separator in Win / MacOS issue. Don't hardcode / or \ !! read "Things to avoid" in spec
+- Be careful using a HashMap when serializing! The order of things within the HashMap is non-deterministic.
+   The solution is to use a TreeMap which will always have the same order
 ## Classes and Data Structures
 
 ### Commit
