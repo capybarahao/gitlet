@@ -1,7 +1,13 @@
 package gitlet;
 
+import com.sun.codemodel.internal.JForEach;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 import static gitlet.Utils.*;
 import static gitlet.Utils.writeContents;
@@ -33,6 +39,7 @@ public class Repository {
     //          - commits
     //          - blobs
     //      - HEAD -- file containing ref to heads folder's branch file "heads/master"
+    //      - INDEX -- file of staging area
 
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
@@ -46,6 +53,7 @@ public class Repository {
     public static final File HEAD = join(GITLET_DIR, "HEAD");
     // The master file, containing master branch info
     public static final File master = join(HEADS_DIR, "master");
+    public static final File INDEX = join(GITLET_DIR, "INDEX");
 
 
     //Creates a new Gitlet version-control system in the current directory.
@@ -76,6 +84,7 @@ public class Repository {
         BLOBS_DIR.mkdir();
         HEAD.createNewFile();
         master.createNewFile();
+        INDEX.createNewFile();
         // set head to master branch "heads/master"
         String branchName = "master";
         String headRef = "heads" + System.getProperty("file.separator") + branchName;
@@ -112,10 +121,39 @@ public class Repository {
     // File does not exist.
     // and exit without changing anything.
     public static void add(String fileName) {
-        File fileToAdd = join(CWD, fileName);
-        readContents(fileToAdd);
 
-        writeObject(file, stagedForAdd);
+        // if the file not exist, print error msg and exit
+        List<String> plainFiles = plainFilenamesIn(CWD);
+        assert plainFiles != null;
+        if (!plainFiles.contains(fileName)) {
+            message("File does not exist.");
+            System.exit(0);
+        }
+
+
+        // a mapping of file name and its contents (as byte array)
+        // Hello.txt - "Hi!"(as byte[])
+        // fool.txt - "bar"
+        // Use: put(K, V), get(K)
+        TreeMap stageForAdd = new TreeMap<>();
+
+        // read the staging area as the map,
+        //  if it's empty, write obj directly
+        //  if not empty, read the map in it, edit map, write obj
+        if (INDEX.length() == 0) {
+
+        }
+        else{
+
+        }
+
+        stageForAdd = readObject(INDEX, TreeMap.class);
+
+        File fileToAdd = join(CWD, fileName);
+
+
+        stageForAdd.put(fileName, readContents(fileToAdd));
+
 
     }
 

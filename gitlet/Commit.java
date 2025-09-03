@@ -8,6 +8,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -35,7 +36,7 @@ public class Commit implements Serializable {
     // a mapping of file names "wug.txt" to blob references "d12da..."
     // maybe a map of file name / blob Sha1?
     // Use: put(K, V), get(K)
-    private Map<String, String> fileToblob = new HashMap<>();
+    private Map<String, String> fileToblob = new TreeMap<>();
 
     public Commit (String message, String parentA, String parentB) {
         this.message = message;
