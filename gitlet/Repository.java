@@ -161,15 +161,16 @@ public class Repository {
 
         // if file content identical to current commit
             // if staging area empty, do nothing (maybe a msg) and exit
-            // read staging area, get stageForAdd
-            // if find file, remove it, write obj, exit
+            // else read staging area, get stageForAdd
+            // if find file, remove it
             // else !find, do nothing (maybe a msg) and exit
         // if !file content identical to current commit
-            // if staging area empty, write obj, exit
-            // read staging area, get stageForAdd
-            // if find file, overwrite it, write obj, exit
-            // else !find file, add to map, write obj, exit
+            // if staging area empty, add file
+            // else read staging area, get stageForAdd
+            // if find file, overwrite it
+            // else !find file, add file
 
+        // write obj, exit
 
         if (INDEX.length() == 0) {
 
