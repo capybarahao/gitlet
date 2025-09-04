@@ -36,7 +36,7 @@ public class Commit implements Serializable {
     // a mapping of file names "wug.txt" to blob references "d12da..."
     // maybe a map of file name / blob Sha1?
     // Use: put(K, V), get(K)
-    private Map<String, String> fileToblob = new TreeMap<>();
+    Map<String, String> fileToBlob = new TreeMap<>();
 
     public Commit (String message, String parentA, String parentB) {
         this.message = message;
