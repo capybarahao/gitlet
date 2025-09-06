@@ -140,24 +140,17 @@ public class Repository {
         // Hello.txt - "Hi!"(as byte[])
         // fool.txt - "bar"
         // Use: put(K, V), get(K)
-        TreeMap stageForAdd = new TreeMap<>();
+        TreeMap stageForAdd;
+        // read staging area, get stageForAdd. It can be empty.
+        stageForAdd = readObject(INDEX, TreeMap.class);
 
         // if file content identical to current commit
         if (fileEqualsCurCmt) {
-            // if staging area empty, do nothing (maybe a msg) and exit
-            if (INDEX.length() == 0) {
-                message("No changes found in file");
-                System.exit(0);
-            }
-            // else read staging area, get stageForAdd (read it when it's empty would bug)
-            // read the current staging area as the map
-            stageForAdd = readObject(INDEX, TreeMap.class);
-
             // if find file in staging area, remove it
             if (stageForAdd.containsKey(fileName)) {
                 stageForAdd.remove(fileName);
             }
-            // else !find, do nothing (maybe a msg) and exit
+            // else empty staging area / !find file
             else {
                 message("No changes found in file");
                 System.exit(0);
@@ -165,21 +158,13 @@ public class Repository {
         }
         // if !file content identical to current commit
         else {
-            // if staging area empty, add file to empty data structure
-            if (INDEX.length() == 0) {
-                stageForAdd.put(fileName, readContents(fileToAdd));
+            // if find file, overwrite it
+            if (stageForAdd.containsKey(fileName)) {
+                stageForAdd.replace(fileName, readContents(fileToAdd));
             }
-            // else read staging area, get stageForAdd
+            // else empty staging area / !find file, add file
             else {
-                stageForAdd = readObject(INDEX, TreeMap.class);
-                // if find file, overwrite it
-                if (stageForAdd.containsKey(fileName)) {
-                    stageForAdd.replace(fileName, readContents(fileToAdd));
-                }
-                // else !find file, add file
-                else {
-                    stageForAdd.put(fileName, readContents(fileToAdd));
-                }
+                stageForAdd.put(fileName, readContents(fileToAdd));
             }
         }
         // write obj, exit
