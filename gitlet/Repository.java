@@ -133,7 +133,75 @@ public class Repository {
 
         // if file content identical to its version in current commit
         // do not stage it to be added, and remove it from the staging area if it is already there
-        String fileSha = sha1(serialize(fileToAdd));
+        // so get this boolean for coming steps below.
+        Boolean fileEqualsCurCmt = fileEqualsCurCmt(fileName);
+
+        // staging area data structure, a mapping of file name and its contents (as byte array)
+        // Hello.txt - "Hi!"(as byte[])
+        // fool.txt - "bar"
+        // Use: put(K, V), get(K)
+        TreeMap stageForAdd = new TreeMap<>();
+
+        // if file content identical to current commit
+        if (fileEqualsCurCmt) {
+            // if staging area empty, do nothing (maybe a msg) and exit
+            if (INDEX.length() == 0) {
+                message("No changes found in file");
+                System.exit(0);
+            }
+            // else read staging area, get stageForAdd (read it when it's empty would bug)
+            // read the current staging area as the map
+            stageForAdd = readObject(INDEX, TreeMap.class);
+
+            // if find file in staging area, remove it
+            if (stageForAdd.containsKey(fileName)) {
+                stageForAdd.remove(fileName);
+            }
+            // else !find, do nothing (maybe a msg) and exit
+            else {
+                message("No changes found in file");
+                System.exit(0);
+            }
+        }
+        // if !file content identical to current commit
+        else {
+            // if staging area empty, add file to empty data structure
+            if (INDEX.length() == 0) {
+                stageForAdd.put(fileName, readContents(fileToAdd));
+            }
+            // else read staging area, get stageForAdd
+            else {
+                stageForAdd = readObject(INDEX, TreeMap.class);
+                // if find file, overwrite it
+                if (stageForAdd.containsKey(fileName)) {
+                    stageForAdd.replace(fileName, readContents(fileToAdd));
+                }
+                // else !find file, add file
+                else {
+                    stageForAdd.put(fileName, readContents(fileToAdd));
+                }
+            }
+        }
+        // write obj, exit
+        writeObject(INDEX, stageForAdd);
+    }
+
+    /**
+     * @return current commit.
+     */
+    static Commit getCurCommit() {
+        String curCommitSha = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
+        File cmtFile = join(CMTS_DIR, curCommitSha);
+        return readObject(cmtFile, Commit.class);
+    }
+
+    /**
+     * @return true if the working file content identical to its version in current commit.
+     */
+    static Boolean fileEqualsCurCmt(String fileName) {
+
+        File fileToAdd = join(CWD, fileName);
+        String fileSha = sha1(readContents(fileToAdd));
         // read current commit obj version of this file's sha1
         Commit curCommit = getCurCommit();
         String curCmtFileSha = curCommit.fileToBlob.get(fileName);
@@ -142,62 +210,6 @@ public class Repository {
         if (curCmtFileSha != null & curCmtFileSha.equals(fileSha)) {
             fileEqualsCurCmt = true;
         }
-
-        // staging area data structure, a mapping of file name and its contents (as byte array)
-        // Hello.txt - "Hi!"(as byte[])
-        // fool.txt - "bar"
-        // Use: put(K, V), get(K)
-        TreeMap stageForAdd = new TreeMap<>();
-
-        // read the current staging area as the map
-        stageForAdd = readObject(INDEX, TreeMap.class);
-
-        //  if it's empty,
-        //      if file content identical to current commit, do nothing (maybe a msg) and exit
-        //      write to obj directly
-        //  if not empty
-        //      read the map in it
-        //      if file... current commit, edit map, write obj
-
-        // if file content identical to current commit
-            // if staging area empty, do nothing (maybe a msg) and exit
-            // else read staging area, get stageForAdd
-            // if find file, remove it
-            // else !find, do nothing (maybe a msg) and exit
-        // if !file content identical to current commit
-            // if staging area empty, add file
-            // else read staging area, get stageForAdd
-            // if find file, overwrite it
-            // else !find file, add file
-
-        // write obj, exit
-
-        if (INDEX.length() == 0) {
-
-        }
-        else if (INDEX.length() != 0 & fileEqualsCurCmt){
-
-        }
-        else {
-
-        }
-
-        stageForAdd = readObject(INDEX, TreeMap.class);
-
-
-
-        stageForAdd.put(fileName, readContents(fileToAdd));
-
-
-    }
-
-    /**
-     *
-     * @return current commit.
-     */
-    static Commit getCurCommit() {
-        String curCommitSha = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
-        File cmtFile = join(CMTS_DIR, curCommitSha);
-        return readObject(cmtFile, Commit.class);
+        return fileEqualsCurCmt;
     }
 }
