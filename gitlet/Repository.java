@@ -1,12 +1,8 @@
 package gitlet;
 
-import com.sun.codemodel.internal.JForEach;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 
 import static gitlet.Utils.*;
@@ -137,10 +133,11 @@ public class Repository {
         Boolean fileEqualsCurCmt = fileEqualsCurCmt(fileName);
 
         // staging area data structure, a mapping of file name and its contents (as byte array)
+        // <String, byte[]>
         // Hello.txt - "Hi!"(as byte[])
         // fool.txt - "bar"
         // Use: put(K, V), get(K)
-        TreeMap stageForAdd;
+        TreeMap<Object, Object> stageForAdd = new TreeMap<>();
         // read staging area, get stageForAdd. It can be empty.
         stageForAdd = readObject(INDEX, TreeMap.class);
 
@@ -176,7 +173,15 @@ public class Repository {
      */
     static Commit getCurCommit() {
         String curCommitSha = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
-        File cmtFile = join(CMTS_DIR, curCommitSha);
+        return getCommit(curCommitSha);
+    }
+
+    /**
+     * @param fileName target commit's SHA1
+     * @return the commit object
+     */
+    static Commit getCommit(String fileName) {
+        File cmtFile = join(CMTS_DIR, fileName);
         return readObject(cmtFile, Commit.class);
     }
 

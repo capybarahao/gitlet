@@ -23,6 +23,8 @@ Get started in 7.25
 1. Message
 2. Timestamp
 3. ParentA & ParentB
+4. Treemap fileToBlob
+   a mapping of file names "wug.txt" to blob references "d12da..."
 
 
 ### Class 2
