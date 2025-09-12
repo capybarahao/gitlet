@@ -23,15 +23,16 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                validateNumArgs("init", args, 1);
+                validateNumArgs(args, 1);
                 Repository.init();
                 break;
             case "add":
-                validateNumArgs("add", args, 2);
+                validateNumArgs(args, 2);
                 Repository.add(args[1]);
                 break;
             case "commit":
-
+                validateNumArgs(args, 2);
+                Repository.add(args[1]);
                 break;
             // If a user inputs a command that doesn’t exist, print the message
             // No command with that name exists.
@@ -48,11 +49,10 @@ public class Main {
      * Incorrect operands.
      * and exit.
      *
-     * @param cmd Name of command you are validating
      * @param args Argument array from command line
      * @param n Number of expected arguments
      */
-    public static void validateNumArgs(String cmd, String[] args, int n) {
+    public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
             Utils.message("Incorrect operands.");
             System.exit(0);
