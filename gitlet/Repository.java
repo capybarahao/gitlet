@@ -137,9 +137,17 @@ public class Repository {
         // Hello.txt - "Hi!"(as byte[])
         // fool.txt - "bar"
         // Use: put(K, V), get(K)
-        TreeMap<Object, Object> stageForAdd = new TreeMap<>();
-        // read staging area, get stageForAdd. It can be empty.
-        stageForAdd = readObject(INDEX, TreeMap.class);
+        TreeMap<String, byte[]> stageForAdd;
+        // If INDEX empty, create new structure, else read from INDEX.
+        if (INDEX.length() == 0) {
+            stageForAdd = new TreeMap<>();
+        }
+        else {
+            @SuppressWarnings("unchecked")
+            TreeMap<String, byte[]> temp =
+                    (TreeMap<String, byte[]>) readObject(INDEX, TreeMap.class);
+            stageForAdd = temp;
+        }
 
         // if file content identical to current commit
         if (fileEqualsCurCmt) {
@@ -196,8 +204,8 @@ public class Repository {
         Commit curCommit = getCurCommit();
         String curCmtFileSha = curCommit.fileToBlob.get(fileName);
 
-        Boolean fileEqualsCurCmt = false;
-        if (curCmtFileSha != null & curCmtFileSha.equals(fileSha)) {
+        boolean fileEqualsCurCmt = false;
+        if (curCmtFileSha != null && curCmtFileSha.equals(fileSha)) {
             fileEqualsCurCmt = true;
         }
         return fileEqualsCurCmt;
