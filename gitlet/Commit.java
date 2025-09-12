@@ -34,7 +34,6 @@ public class Commit implements Serializable {
     private String timestamp;
 
     // a mapping of file names "wug.txt" to blob references "d12da..."
-    // maybe a map of file name / blob Sha1?
     // Use: put(K, V), get(K)
     Map<String, String> fileToBlob = new TreeMap<>();
 

@@ -176,6 +176,11 @@ public class Repository {
         writeObject(INDEX, stageForAdd);
     }
 
+
+
+
+
+
     /**
      * @return current commit.
      */
