@@ -185,16 +185,37 @@ public class Repository {
     // A commit will only update the contents of files it is tracking that have been staged for addition
     // at the time of commit, in which case the commit will now include the version of the file that
     // was staged instead of the version it got from its parent.
-    // A commit will save and start tracking any files that were staged for addition but weren’t tracked by its parent.
+    // A commit will save and start tracking any files staged for addition but weren’t tracked by its parent.
     // Finally, files tracked in the current commit may be untracked in the new commit
     // as a result being staged for removal by the rm command (below).
 
+    public static void commit(String msg) {
+        // If no files have been staged, abort.
+        // Print the message No changes added to the commit.
+        if (INDEX.length() == 0) {
+            message("No changes added to the commit.");
+            System.exit(0);
+        }
+
+        Commit Cmt = getCurCommit();
+        // Blob: a byte array object containing file content, with its SHA1 as its file name
+        // read staging area, iterate it
+            // create blob, save blob, with its SHA1 as its file name.
+            // if new file, add fileName / blob sha to commit's fileToBlob. if updated file, update that.
+        // update the parent ref (add this commit to the commit tree)
+        // update metadata: message, timestamp
+
+
+        // update head pointer
+        // clear staging area
+        // save commit, with its SHA1 as its file name.
+    }
 
 
 
 
     /**
-     * @return current commit.
+     * @return current commit (the HEAD).
      */
     static Commit getCurCommit() {
         String curCommitSha = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
