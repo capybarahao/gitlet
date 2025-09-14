@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import static gitlet.Utils.*;
@@ -90,17 +91,17 @@ public class Repository {
         Commit initial = Commit.createInitialCommit();
 
         // generate sha for commit object
-        String Sha = sha1(serialize(initial));
+        String cmtSha = sha1(serialize(initial));
 
         // write commit object to file
-        File commitFile = join(CMTS_DIR, Sha);
-        commitFile.createNewFile();
-        writeObject(commitFile, initial);
+        File commitObjFile = join(CMTS_DIR, cmtSha);
+        commitObjFile.createNewFile();
+        writeObject(commitObjFile, initial);
 
         // write the commit sha to head, (which leads to master)
         String ref = readContentsAsString(HEAD);
         File branchFile = join(GITLET_DIR, ref);
-        writeContents(branchFile, Sha);
+        writeContents(branchFile, cmtSha);
     }
 
     // java gitlet.Main add [file name]
@@ -132,20 +133,20 @@ public class Repository {
         // so get this boolean for coming steps below.
         Boolean fileEqualsCurCmt = fileEqualsCurCmt(fileName);
 
-        // staging area data structure, a mapping of file name and its contents (as byte array)
-        // <String, byte[]>
-        // Hello.txt - "Hi!"(as byte[])
+        // staging area data structure, a mapping of file name and its contents as string
+        // <String, String>
+        // Hello.txt - "Hi!"
         // fool.txt - "bar"
         // Use: put(K, V), get(K)
-        TreeMap<String, byte[]> stageForAdd;
+        TreeMap<String, String> stageForAdd;
         // If INDEX empty, create new structure, else read from INDEX.
         if (INDEX.length() == 0) {
             stageForAdd = new TreeMap<>();
         }
         else {
             @SuppressWarnings("unchecked")
-            TreeMap<String, byte[]> temp =
-                    (TreeMap<String, byte[]>) readObject(INDEX, TreeMap.class);
+            TreeMap<String, String> temp =
+                    (TreeMap<String, String>) readObject(INDEX, TreeMap.class);
             stageForAdd = temp;
         }
 
@@ -165,11 +166,11 @@ public class Repository {
         else {
             // if find file, overwrite it
             if (stageForAdd.containsKey(fileName)) {
-                stageForAdd.replace(fileName, readContents(fileToAdd));
+                stageForAdd.replace(fileName, readContentsAsString(fileToAdd));
             }
             // else empty staging area / !find file, add file
             else {
-                stageForAdd.put(fileName, readContents(fileToAdd));
+                stageForAdd.put(fileName, readContentsAsString(fileToAdd));
             }
         }
         // write obj, exit
@@ -189,7 +190,7 @@ public class Repository {
     // Finally, files tracked in the current commit may be untracked in the new commit
     // as a result being staged for removal by the rm command (below).
 
-    public static void commit(String msg) {
+    public static void commit(String msg) throws IOException {
         // If no files have been staged, abort.
         // Print the message No changes added to the commit.
         if (INDEX.length() == 0) {
@@ -202,6 +203,16 @@ public class Repository {
         // read staging area, iterate it
             // create blob, save blob, with its SHA1 as its file name.
             // if new file, add fileName / blob sha to commit's fileToBlob. if updated file, update that.
+        TreeMap<String, byte[]> stageForAdd = (TreeMap<String, byte[]>) readObject(INDEX, TreeMap.class);
+        for (Map.Entry<String, byte[]> entry : stageForAdd.entrySet()) {
+            String fileName = entry.getKey();
+            byte[] contents = entry.getValue();
+            String blobSha = sha1(contents);
+            File blob = join(BLOBS_DIR, blobSha);
+            blob.createNewFile();
+
+
+        }
         // update the parent ref (add this commit to the commit tree)
         // update metadata: message, timestamp
 
@@ -223,11 +234,11 @@ public class Repository {
     }
 
     /**
-     * @param fileName target commit's SHA1
+     * @param cmtSha target commit's SHA1
      * @return the commit object
      */
-    static Commit getCommit(String fileName) {
-        File cmtFile = join(CMTS_DIR, fileName);
+    static Commit getCommit(String cmtSha) {
+        File cmtFile = join(CMTS_DIR, cmtSha);
         return readObject(cmtFile, Commit.class);
     }
 
