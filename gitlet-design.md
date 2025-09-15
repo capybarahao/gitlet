@@ -17,6 +17,9 @@ Get started in 7.25
 
 - choice of data structure for storing file contents: not assume file as texts/strings but binary files. store them as byte[] instead of string.
 - for example. stageForAdd should be String / byte[] map, instead of string/string one.
+
+- INDEX stores both add and remove info? 
+- 
 ## Classes and Data Structures
 
 ### Commit

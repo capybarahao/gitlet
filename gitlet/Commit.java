@@ -41,7 +41,6 @@ public class Commit implements Serializable {
         this.message = message;
         this.parentA = parentA;
         this.parentB = parentB;
-        // Output:
     }
 
     // factory method only for init()
@@ -55,6 +54,8 @@ public class Commit implements Serializable {
     public void setMessage(String msg) {
         this.message = msg;
     }
+
+    // getter?
 
     public void setTimestamp(String ts) {
         this.timestamp = ts;

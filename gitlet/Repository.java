@@ -174,6 +174,7 @@ public class Repository {
         // write obj, exit
         writeObject(INDEX, stageForAdd);
     }
+
     // java gitlet.Main commit [message]
     // To include multiword messages, surround them in quotes
     // Saves a snapshot of tracked files in the current commit and staging area
@@ -191,6 +192,8 @@ public class Repository {
     public static void commit(String msg) throws IOException {
         // If no files have been staged, abort.
         // Print the message No changes added to the commit.
+        // Todo: consider rm issue
+
         if (INDEX.length() == 0) {
             message("No changes added to the commit.");
             System.exit(0);
@@ -224,13 +227,17 @@ public class Repository {
         cmt.setMessage(msg);
         // generate hash for this commit. no more changes to this cmt object from now
         cmtHash = sha1(serialize(cmt));
+
         // update head pointer
         setHeadTo(cmtHash);
         // clear staging area
         stageForAdd.clear();
         // save commit obj, with its SHA1 as its file name.
         writeCmtObj(cmt, cmtHash);
+
+        // Todo something for rm
     }
+
 
 
 

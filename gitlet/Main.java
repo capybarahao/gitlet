@@ -31,6 +31,9 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
+                // Todo: Every commit must have a non-blank message.
+                //  If it doesn’t, print the error message Please enter a commit message.
+
                 validateNumArgs(args, 2);
                 Repository.add(args[1]);
                 break;
