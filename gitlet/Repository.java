@@ -2,6 +2,8 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -90,18 +92,14 @@ public class Repository {
         // create initial commit
         Commit initial = Commit.createInitialCommit();
 
-        // generate sha for commit object
-        String cmtSha = sha1(serialize(initial));
+        // generate hash for commit object
+        String cmtHash = sha1(serialize(initial));
 
         // write commit object to file
-        File commitObjFile = join(CMTS_DIR, cmtSha);
-        commitObjFile.createNewFile();
-        writeObject(commitObjFile, initial);
+        writeCmtObj(initial, cmtHash);
 
-        // write the commit sha to head, (which leads to master)
-        String ref = readContentsAsString(HEAD);
-        File branchFile = join(GITLET_DIR, ref);
-        writeContents(branchFile, cmtSha);
+        // write the commit hash to head, (which leads to master)
+        setHeadTo(cmtHash);
     }
 
     // java gitlet.Main add [file name]
@@ -198,7 +196,8 @@ public class Repository {
             System.exit(0);
         }
 
-        Commit Cmt = getCurCommit();
+        Commit cmt = getCurCommit();
+        String cmtHash = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
         // Blob: a byte array object containing file content, with its SHA1 as its file name
         // read staging area, iterate it
             // create blob, save blob, with its SHA1 as its file name.
@@ -207,18 +206,30 @@ public class Repository {
         for (Map.Entry<String, byte[]> entry : stageForAdd.entrySet()) {
             String fileName = entry.getKey();
             byte[] contents = entry.getValue();
-            String blobSha = sha1(contents);
-            File blob = join(BLOBS_DIR, blobSha);
+            String blobHash = sha1(contents);
+            File blob = join(BLOBS_DIR, blobHash);
             blob.createNewFile();
             writeContents(blob, contents);
+            if (cmt.fileToBlob.containsKey(fileName)) {
+                cmt.fileToBlob.replace(fileName, blobHash);
+            }
+            else {
+                cmt.fileToBlob.put(fileName, blobHash);
+            }
         }
         // update the parent ref (add this commit to the commit tree)
+        cmt.setParentA(cmtHash);
         // update metadata: message, timestamp
-
-
+        cmt.setTimestamp(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toString());
+        cmt.setMessage(msg);
+        // generate hash for this commit. no more changes to this cmt object from now
+        cmtHash = sha1(serialize(cmt));
         // update head pointer
+        setHeadTo(cmtHash);
         // clear staging area
-        // save commit, with its SHA1 as its file name.
+        stageForAdd.clear();
+        // save commit obj, with its SHA1 as its file name.
+        writeCmtObj(cmt, cmtHash);
     }
 
 
@@ -228,16 +239,16 @@ public class Repository {
      * @return current commit (the HEAD).
      */
     static Commit getCurCommit() {
-        String curCommitSha = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
-        return getCommit(curCommitSha);
+        String curCmtHash = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
+        return getCommit(curCmtHash);
     }
 
     /**
-     * @param cmtSha target commit's SHA1
+     * @param cmtHash target commit's hash
      * @return the commit object
      */
-    static Commit getCommit(String cmtSha) {
-        File cmtFile = join(CMTS_DIR, cmtSha);
+    static Commit getCommit(String cmtHash) {
+        File cmtFile = join(CMTS_DIR, cmtHash);
         return readObject(cmtFile, Commit.class);
     }
 
@@ -247,15 +258,34 @@ public class Repository {
     static Boolean fileEqualsCurCmt(String fileName) {
 
         File fileToAdd = join(CWD, fileName);
-        String fileSha = sha1(readContents(fileToAdd));
+        String fileHash = sha1(readContents(fileToAdd));
         // read current commit obj version of this file's sha1
         Commit curCommit = getCurCommit();
         String curCmtFileSha = curCommit.fileToBlob.get(fileName);
 
         boolean fileEqualsCurCmt = false;
-        if (curCmtFileSha != null && curCmtFileSha.equals(fileSha)) {
+        if (curCmtFileSha != null && curCmtFileSha.equals(fileHash)) {
             fileEqualsCurCmt = true;
         }
         return fileEqualsCurCmt;
+    }
+    /**
+     * @param cmtHash commit's hash.
+     *
+     */
+    static void setHeadTo(String cmtHash) {
+        String ref = readContentsAsString(HEAD);
+        File branchFile = join(GITLET_DIR, ref);
+        writeContents(branchFile, cmtHash);
+    }
+
+    /**
+     * @param cmt commit to be saved.
+     * @param cmtHash commit's hash.
+     */
+    static void writeCmtObj(Commit cmt, String cmtHash) throws IOException {
+        File commitObjFile = join(CMTS_DIR, cmtHash);
+        commitObjFile.createNewFile();
+        writeObject(commitObjFile, cmt);
     }
 }

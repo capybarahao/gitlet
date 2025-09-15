@@ -25,8 +25,8 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
     // parent of this commit, can have two parents.
-    private String parentA;
-    private String parentB;
+    public String parentA;
+    public String parentB;
 
     /** The message of this Commit. */
     private String message;
@@ -41,7 +41,6 @@ public class Commit implements Serializable {
         this.message = message;
         this.parentA = parentA;
         this.parentB = parentB;
-        timestamp = ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toString();
         // Output:
     }
 
@@ -53,5 +52,19 @@ public class Commit implements Serializable {
         return initial;
     }
 
+    public void setMessage(String msg) {
+        this.message = msg;
+    }
 
+    public void setTimestamp(String ts) {
+        this.timestamp = ts;
+    }
+
+    public void setParentA(String aHash) {
+        this.parentA = aHash;
+    }
+
+    public void setParentB(String bHash) {
+        this.parentB = bHash;
+    }
 }
