@@ -14,6 +14,9 @@ Get started in 7.25
 - file separator in Win / MacOS issue. Don't hardcode / or \ !! read "Things to avoid" in spec
 - Be careful using a HashMap when serializing! The order of things within the HashMap is non-deterministic.
    The solution is to use a TreeMap which will always have the same order
+
+- choice of data structure for storing file contents: not assume file as texts/strings but binary files. store them as byte[] instead of string.
+- for example. stageForAdd should be String / byte[] map, instead of string/string one.
 ## Classes and Data Structures
 
 ### Commit

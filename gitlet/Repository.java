@@ -134,19 +134,19 @@ public class Repository {
         Boolean fileEqualsCurCmt = fileEqualsCurCmt(fileName);
 
         // staging area data structure, a mapping of file name and its contents as string
-        // <String, String>
+        // <String, byte[]>
         // Hello.txt - "Hi!"
         // fool.txt - "bar"
         // Use: put(K, V), get(K)
-        TreeMap<String, String> stageForAdd;
+        TreeMap<String, byte[]> stageForAdd;
         // If INDEX empty, create new structure, else read from INDEX.
         if (INDEX.length() == 0) {
             stageForAdd = new TreeMap<>();
         }
         else {
             @SuppressWarnings("unchecked")
-            TreeMap<String, String> temp =
-                    (TreeMap<String, String>) readObject(INDEX, TreeMap.class);
+            TreeMap<String, byte[]> temp =
+                    (TreeMap<String, byte[]>) readObject(INDEX, TreeMap.class);
             stageForAdd = temp;
         }
 
@@ -166,11 +166,11 @@ public class Repository {
         else {
             // if find file, overwrite it
             if (stageForAdd.containsKey(fileName)) {
-                stageForAdd.replace(fileName, readContentsAsString(fileToAdd));
+                stageForAdd.replace(fileName, readContents(fileToAdd));
             }
             // else empty staging area / !find file, add file
             else {
-                stageForAdd.put(fileName, readContentsAsString(fileToAdd));
+                stageForAdd.put(fileName, readContents(fileToAdd));
             }
         }
         // write obj, exit
@@ -210,8 +210,7 @@ public class Repository {
             String blobSha = sha1(contents);
             File blob = join(BLOBS_DIR, blobSha);
             blob.createNewFile();
-
-
+            writeContents(blob, contents);
         }
         // update the parent ref (add this commit to the commit tree)
         // update metadata: message, timestamp
