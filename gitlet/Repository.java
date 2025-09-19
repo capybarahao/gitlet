@@ -115,7 +115,7 @@ public class Repository {
     //Failure cases: If the file does not exist, print the error message
     // File does not exist.
     // and exit without changing anything.
-    public static void add(String fileName) {
+    public static void add(String fileName) throws IOException {
 
         // if the file not exist, print error msg and exit
         List<String> plainFiles = plainFilenamesIn(CWD);
@@ -124,55 +124,29 @@ public class Repository {
             message("File does not exist.");
             System.exit(0);
         }
-        File fileToAdd = join(CWD, fileName);
 
-        // if file content identical to its version in current commit
-        // do not stage it to be added, and remove it from the staging area if it is already there
-        // so get this boolean for coming steps below.
-        Boolean fileEqualsCurCmt = fileEqualsCurCmt(fileName);
 
-        // staging area data structure, a mapping of file name and its contents as string
-        // <String, byte[]>
-        // Hello.txt - "Hi!"
-        // fool.txt - "bar"
+        // staging area data structure, a mapping of file name and blob references "d12da..."
+        // <String, String>
+        // Hello.txt - adfdsfsa3241234
+        // fool.txt - dk4jkdl34332
         // Use: put(K, V), get(K)
-        TreeMap<String, byte[]> stageForAdd;
+        TreeMap<String, String> index;
         // If INDEX empty, create new structure, else read from INDEX.
         if (INDEX.length() == 0) {
-            stageForAdd = new TreeMap<>();
+            index = new TreeMap<>();
         }
         else {
             @SuppressWarnings("unchecked")
-            TreeMap<String, byte[]> temp =
-                    (TreeMap<String, byte[]>) readObject(INDEX, TreeMap.class);
-            stageForAdd = temp;
+            TreeMap<String, String> temp =
+                    (TreeMap<String, String>) readObject(INDEX, TreeMap.class);
+            index = temp;
         }
+        String blobHash = createBlob(fileName);
 
-        // if file content identical to current commit
-        if (fileEqualsCurCmt) {
-            // if find file in staging area, remove it
-            if (stageForAdd.containsKey(fileName)) {
-                stageForAdd.remove(fileName);
-            }
-            // else empty staging area / !find file
-            else {
-                message("No changes found in file");
-                System.exit(0);
-            }
-        }
-        // if !file content identical to current commit
-        else {
-            // if find file, overwrite it
-            if (stageForAdd.containsKey(fileName)) {
-                stageForAdd.replace(fileName, readContents(fileToAdd));
-            }
-            // else empty staging area / !find file, add file
-            else {
-                stageForAdd.put(fileName, readContents(fileToAdd));
-            }
-        }
+        index.put(fileName, blobHash);
         // write obj, exit
-        writeObject(INDEX, stageForAdd);
+        writeObject(INDEX, index);
     }
 
     // java gitlet.Main commit [message]
@@ -259,6 +233,20 @@ public class Repository {
         return readObject(cmtFile, Commit.class);
     }
 
+
+    static String createBlob(String fileName) throws IOException {
+        // create blob, save blob, with its SHA1 as its file name.
+        // if blob exists, do nothing, if not then create and save.
+        // return blob hash
+        File fileToAdd = join(CWD, fileName);
+        String blobHash = sha1(readContents(fileToAdd));
+        File blob = join(BLOBS_DIR, blobHash);
+        if (!blob.exists()) {
+            blob.createNewFile();
+            writeContents(blob, readContents(fileToAdd));
+        }
+        return blobHash;
+    }
     /**
      * @return true if the working file content identical to its version in current commit.
      */
