@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -125,26 +126,19 @@ public class Repository {
             System.exit(0);
         }
 
-
-        // staging area data structure, a mapping of file name and blob references "d12da..."
+        // index: staging area data structure, a mapping of file name and blob references "d12da..."
         // <String, String>
         // Hello.txt - adfdsfsa3241234
         // fool.txt - dk4jkdl34332
-        // Use: put(K, V), get(K)
-        TreeMap<String, String> index;
-        // If INDEX empty, create new structure, else read from INDEX.
-        if (INDEX.length() == 0) {
-            index = new TreeMap<>();
-        }
-        else {
-            @SuppressWarnings("unchecked")
-            TreeMap<String, String> temp =
-                    (TreeMap<String, String>) readObject(INDEX, TreeMap.class);
-            index = temp;
-        }
+        TreeMap<String, String> index = readIndex();
+
+        // Blob: a byte array object containing file content, with its SHA1 as its file name
+        // create blob(or not, if it exists), get the blob hash.
         String blobHash = createBlob(fileName);
 
+        // set the file as the latest version (put will do both add/replace)
         index.put(fileName, blobHash);
+
         // write obj, exit
         writeObject(INDEX, index);
     }
@@ -164,37 +158,28 @@ public class Repository {
     // as a result being staged for removal by the rm command (below).
 
     public static void commit(String msg) throws IOException {
-        // If no files have been staged, abort.
+        // If no files have been staged, abort. (meaning index = fileToAdd?)
         // Print the message No changes added to the commit.
-        // Todo: consider rm issue
+        Commit cmt = getCurCommit();
+        TreeMap<String, String> index = readIndex();
 
-        if (INDEX.length() == 0) {
+        if (cmt.fileToBlob.equals(index)) {
             message("No changes added to the commit.");
             System.exit(0);
         }
 
-        Commit cmt = getCurCommit();
-        String cmtHash = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
-        // Blob: a byte array object containing file content, with its SHA1 as its file name
-        // read staging area, iterate it
-            // create blob, save blob, with its SHA1 as its file name.
-            // if new file, add fileName / blob sha to commit's fileToBlob. if updated file, update that.
-        TreeMap<String, byte[]> stageForAdd = (TreeMap<String, byte[]>) readObject(INDEX, TreeMap.class);
-        for (Map.Entry<String, byte[]> entry : stageForAdd.entrySet()) {
+        // prepare for setting fileToBlob
+        cmt.fileToBlob.clear();
+
+        // read index, iterate it, "copy" index to commit's fileToBlob
+        for (Map.Entry<String, String> entry : index.entrySet()) {
             String fileName = entry.getKey();
-            byte[] contents = entry.getValue();
-            String blobHash = sha1(contents);
-            File blob = join(BLOBS_DIR, blobHash);
-            blob.createNewFile();
-            writeContents(blob, contents);
-            if (cmt.fileToBlob.containsKey(fileName)) {
-                cmt.fileToBlob.replace(fileName, blobHash);
-            }
-            else {
-                cmt.fileToBlob.put(fileName, blobHash);
-            }
+            String blobHash = entry.getValue();
+            cmt.fileToBlob.put(fileName, blobHash);
         }
+
         // update the parent ref (add this commit to the commit tree)
+        String cmtHash = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
         cmt.setParentA(cmtHash);
         // update metadata: message, timestamp
         cmt.setTimestamp(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toString());
@@ -204,12 +189,9 @@ public class Repository {
 
         // update head pointer
         setHeadTo(cmtHash);
-        // clear staging area
-        stageForAdd.clear();
+
         // save commit obj, with its SHA1 as its file name.
         writeCmtObj(cmt, cmtHash);
-
-        // Todo something for rm
     }
 
 
@@ -247,6 +229,22 @@ public class Repository {
         }
         return blobHash;
     }
+
+
+    // If INDEX empty, create new structure, else read from INDEX.
+    static TreeMap<String, String> readIndex(){
+        TreeMap<String, String> index;
+        if (INDEX.length() == 0) {
+            index = new TreeMap<>();
+        } else {
+            @SuppressWarnings("unchecked")
+            TreeMap<String, String> temp =
+                    (TreeMap<String, String>) readObject(INDEX, TreeMap.class);
+            index = temp;
+        }
+        return index;
+    }
+
     /**
      * @return true if the working file content identical to its version in current commit.
      */
