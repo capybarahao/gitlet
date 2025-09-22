@@ -31,11 +31,12 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
-                // Todo: Every commit must have a non-blank message.
+                // Every commit must have a non-blank message.
                 //  If it doesn’t, print the error message Please enter a commit message.
+                // This logic is in method.
 
                 validateNumArgs(args, 2);
-                Repository.add(args[1]);
+                Repository.commit(args[1]);
                 break;
             // If a user inputs a command that doesn’t exist, print the message
             // No command with that name exists.
@@ -56,6 +57,10 @@ public class Main {
      * @param n Number of expected arguments
      */
     public static void validateNumArgs(String[] args, int n) {
+        if (args[0].equals("commit") && args.length == 1) {
+            Utils.message("Please enter a commit message.");
+            System.exit(0);
+        }
         if (args.length != n) {
             Utils.message("Incorrect operands.");
             System.exit(0);

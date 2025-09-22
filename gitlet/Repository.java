@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -134,12 +133,12 @@ public class Repository {
 
         // Blob: a byte array object containing file content, with its SHA1 as its file name
         // create blob(or not, if it exists), get the blob hash.
-        String blobHash = createBlob(fileName);
+        String blobHash = writeBlobObj(fileName);
 
         // set the file as the latest version (put will do both add/replace)
         index.put(fileName, blobHash);
 
-        // write obj, exit
+        // write index obj, exit
         writeObject(INDEX, index);
     }
 
@@ -194,8 +193,39 @@ public class Repository {
         writeCmtObj(cmt, cmtHash);
     }
 
+    // Unstage the file if it is currently staged for addition.
+    // If the file is tracked in the current commit, stage it for removal and
+    // remove the file from the working directory if the user has not already done so
+    // (do not remove it unless it is tracked in the current commit).
+    // Failure cases: If the file is neither staged nor tracked by the head commit,
+    // print the error message
+    // No reason to remove the file.
+    public static void rm(String fileName) {
+        // if the file not exist, print error msg and exit
+        List<String> plainFiles = plainFilenamesIn(CWD);
+        assert plainFiles != null;
+        if (!plainFiles.contains(fileName)) {
+            message("File does not exist.");
+            System.exit(0);
+        }
+        TreeMap<String, String> index = readIndex();
+        Commit cmt = getCurCommit();
+        File fileToRm = join(CWD, fileName);
+
+        if (!cmt.fileToBlob.containsKey(fileName) && !index.containsKey(fileName)) {
+            message("No reason to remove the file.");
+            System.exit(0);
+        }
+
+        // remove it from index
+        index.remove(fileName);
+        // if the file is tracked in the current commit, rm file in CWD
+        if (cmt.fileToBlob.containsKey(fileName)) {
+            Utils.restrictedDelete(fileToRm);
+        }
 
 
+    }
 
 
     /**
@@ -216,7 +246,7 @@ public class Repository {
     }
 
 
-    static String createBlob(String fileName) throws IOException {
+    static String writeBlobObj(String fileName) throws IOException {
         // create blob, save blob, with its SHA1 as its file name.
         // if blob exists, do nothing, if not then create and save.
         // return blob hash
@@ -231,7 +261,7 @@ public class Repository {
     }
 
 
-    // If INDEX empty, create new structure, else read from INDEX.
+    // If INDEX empty, create new structure, else read from file INDEX.
     static TreeMap<String, String> readIndex(){
         TreeMap<String, String> index;
         if (INDEX.length() == 0) {
@@ -262,6 +292,7 @@ public class Repository {
         }
         return fileEqualsCurCmt;
     }
+
     /**
      * @param cmtHash commit's hash.
      *
