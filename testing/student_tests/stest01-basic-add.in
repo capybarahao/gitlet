@@ -7,3 +7,5 @@
 + wug.txt notwug.txt
 > add wug.txt
 <<<
+> commit wug.txt
+<<<

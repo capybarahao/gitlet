@@ -219,6 +219,8 @@ public class Repository {
 
         // remove it from index
         index.remove(fileName);
+        writeObject(INDEX, index);
+
         // if the file is tracked in the current commit, rm file in CWD
         if (cmt.fileToBlob.containsKey(fileName)) {
             Utils.restrictedDelete(fileToRm);
