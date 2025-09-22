@@ -7,5 +7,9 @@
 + wug.txt notwug.txt
 > add wug.txt
 <<<
-> commit wug.txt
+> commit "wug to notwug"
+<<<
+> rm wug.txt
+<<<
+> commit "remove wug"
 <<<

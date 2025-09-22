@@ -34,10 +34,14 @@ public class Main {
                 // Every commit must have a non-blank message.
                 //  If it doesn’t, print the error message Please enter a commit message.
                 // This logic is in method.
-
                 validateNumArgs(args, 2);
                 Repository.commit(args[1]);
                 break;
+            case "rm":
+                validateNumArgs(args, 2);
+                Repository.rm(args[1]);
+                break;
+
             // If a user inputs a command that doesn’t exist, print the message
             // No command with that name exists.
             // and exit.
