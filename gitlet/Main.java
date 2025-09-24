@@ -45,6 +45,16 @@ public class Main {
                 validateNumArgs(args, 1);
                 Repository.log();
                 break;
+            case "global-log":
+                validateNumArgs(args, 1);
+                Repository.global_log();
+                break;
+            case "find":
+                validateNumArgs(args, 2);
+                Repository.find(args[1]);
+                break;
+
+
             // If a user inputs a command that doesn’t exist, print the message
             // No command with that name exists.
             // and exit.

@@ -258,6 +258,44 @@ public class Repository {
 
     }
 
+    public static void global_log() {
+        List<String> cmtFiles = Utils.plainFilenamesIn(CMTS_DIR);
+        for (String cmt: cmtFiles) {
+            Commit p = getCommit(cmt);
+
+            System.out.println("===");
+            System.out.printf("commit %s%n", cmt);
+            // if a merged commit print merge info line
+            // "Merge: 4975af1 2c1ead1"
+            // Todo: after doing merge:
+            //  The first parent is the branch you were on when you did the merge; the second is that of the merged-in branch.
+
+            if (p.getParentB() != null) {
+                System.out.printf("Merge: %s %s%n",p.getParentA().substring(0,7), p.getParentB().substring(0,7));
+            }
+
+            System.out.printf("Date: %s%n", p.getTimestamp());
+            System.out.println(p.getMessage());
+            System.out.println();
+        }
+    }
+
+    public static void find(String msg) {
+        List<String> cmtFiles = Utils.plainFilenamesIn(CMTS_DIR);
+        Commit p = null;
+        boolean found = false;
+        for (String cmt: cmtFiles) {
+            p = getCommit(cmt);
+            if (p.getMessage().equals(msg)) {
+                System.out.println(cmt);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("Found no commit with that message.");
+        }
+    }
+
 
 
     /**
@@ -271,7 +309,7 @@ public class Repository {
      * @param cmtHash target commit's hash
      * @return the commit object
      */
-    static Commit getCommit(String cmtHash) {
+    private static Commit getCommit(String cmtHash) {
         File cmtFile = join(CMTS_DIR, cmtHash);
         return readObject(cmtFile, Commit.class);
     }
