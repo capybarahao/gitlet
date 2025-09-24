@@ -159,7 +159,7 @@ public class Repository {
     public static void commit(String msg) throws IOException {
         // If no files have been staged, abort. (meaning index = fileToAdd?)
         // Print the message No changes added to the commit.
-        Commit cmt = getCurCommit();
+        Commit cmt = getCommit(getHead());
         TreeMap<String, String> index = readIndex();
 
         if (cmt.fileToBlob.equals(index)) {
@@ -178,7 +178,7 @@ public class Repository {
         }
 
         // update the parent ref (add this commit to the commit tree)
-        String cmtHash = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
+        String cmtHash = getHead();
         cmt.setParentA(cmtHash);
         // update metadata: message, timestamp
         cmt.setTimestamp(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toString());
@@ -209,7 +209,7 @@ public class Repository {
             System.exit(0);
         }
         TreeMap<String, String> index = readIndex();
-        Commit cmt = getCurCommit();
+        Commit cmt = getCommit(getHead());
         File fileToRm = join(CWD, fileName);
 
         if (!cmt.fileToBlob.containsKey(fileName) && !index.containsKey(fileName)) {
@@ -223,19 +223,48 @@ public class Repository {
 
         // if the file is tracked in the current commit, rm file in CWD
         if (cmt.fileToBlob.containsKey(fileName)) {
-            Utils.restrictedDelete(fileToRm);
+            restrictedDelete(fileToRm);
         }
 
 
     }
 
+    public static void log() {
+        String cmtHash = getHead();
+        Commit p = getCommit(cmtHash);
+
+        while (p != null) {
+
+            System.out.println("===");
+            System.out.printf("commit %s%n", cmtHash);
+            // if a merged commit print merge info line
+            // "Merge: 4975af1 2c1ead1"
+            // Todo: after doing merge:
+            //  The first parent is the branch you were on when you did the merge; the second is that of the merged-in branch.
+
+            if (p.getParentB() != null) {
+                System.out.printf("Merge: %s %s%n",p.getParentA().substring(0,7), p.getParentB().substring(0,7));
+            }
+
+            System.out.printf("Date: %s%n", p.getTimestamp());
+            System.out.println(p.getMessage());
+            System.out.println();
+            cmtHash = p.getParentA();
+            if (cmtHash == null) {
+                break;
+            }
+            p = getCommit(cmtHash);
+        }
+
+    }
+
+
 
     /**
      * @return current commit (the HEAD).
      */
-    static Commit getCurCommit() {
-        String curCmtHash = readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
-        return getCommit(curCmtHash);
+    private static String getHead() {
+        return readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
     }
 
     /**
@@ -285,7 +314,7 @@ public class Repository {
         File fileToAdd = join(CWD, fileName);
         String fileHash = sha1(readContents(fileToAdd));
         // read current commit obj version of this file's sha1
-        Commit curCommit = getCurCommit();
+        Commit curCommit = getCommit(getHead());
         String curCmtFileSha = curCommit.fileToBlob.get(fileName);
 
         boolean fileEqualsCurCmt = false;
