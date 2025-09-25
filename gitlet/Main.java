@@ -53,7 +53,10 @@ public class Main {
                 validateNumArgs(args, 2);
                 Repository.find(args[1]);
                 break;
-
+            case "status":
+                validateNumArgs(args, 1);
+                Repository.status();
+                break;
 
             // If a user inputs a command that doesn’t exist, print the message
             // No command with that name exists.

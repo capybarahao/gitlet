@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -295,6 +296,54 @@ public class Repository {
             System.out.println("Found no commit with that message.");
         }
     }
+
+    //    === Branches ===
+    //    *master
+    //    other-branch
+    //
+    //    === Staged Files ===
+    //    wug.txt
+    //    wug2.txt
+    //
+    //    === Removed Files ===
+    //    goodbye.txt
+    //
+
+    public static void status() {
+        System.out.println("=== Branches ===");
+        List<String> branches = Utils.plainFilenamesIn(HEADS_DIR);
+        String curBranch = readContentsAsString(HEAD).substring(6);
+
+        // Sort the list in lexicographical order
+        Collections.sort(branches);
+        for (String branch: branches) {
+            if (branch.equals(curBranch)) {
+                System.out.print("*");
+            }
+            System.out.println(branch);
+        }
+
+        System.out.println();
+
+        System.out.println("=== Staged Files ===");
+
+        TreeMap<String, String> index = readIndex();
+        for (String key : index.keySet()) {
+            System.out.println(key);
+        }
+
+        System.out.println();
+
+        System.out.println("=== Removed Files ===");
+
+        Commit cur = getCommit(getHead());
+        cur.fileToBlob
+
+    }
+
+
+
+
 
 
 

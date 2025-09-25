@@ -9,7 +9,10 @@
 <<<
 > commit "wug to notwug"
 <<<
++ dog.txt dog.txt
+> add dog.txt
+<<<
 > rm wug.txt
 <<<
-> commit "remove wug"
+> commit "remove wug, add dog"
 <<<

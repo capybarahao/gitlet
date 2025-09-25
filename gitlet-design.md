@@ -19,7 +19,13 @@ Get started in 7.25
 - for example. stageForAdd should be String / byte[] map, instead of string/string one.
 
 - INDEX stores both add and remove info? 
-- 
+
+## Testing Command
+- make 
+- make clean
+- python3 tester.py --verbose --keep student_tests/stest01-basic-add.in
+
+
 ## Classes and Data Structures
 
 ### Commit
