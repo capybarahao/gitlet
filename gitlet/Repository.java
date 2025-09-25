@@ -337,7 +337,13 @@ public class Repository {
         System.out.println("=== Removed Files ===");
 
         Commit cur = getCommit(getHead());
-        cur.fileToBlob
+        for(String skey: cur.fileToBlob.keySet()) {
+            if (!index.containsKey(skey)){
+                System.out.println(skey);
+            }
+        }
+
+        System.out.println();
 
     }
 
