@@ -16,3 +16,10 @@
 <<<
 > commit "remove wug, add dog"
 <<<
+> rm dog.txt
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> status
+<<<
