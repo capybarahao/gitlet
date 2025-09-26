@@ -347,6 +347,40 @@ public class Repository {
 
     }
 
+    // Takes the version of the file as it exists in the head commit and puts it in the working directory,
+    // overwriting the version of the file that’s already there if there is one.
+    // The new version of the file is not staged.
+    // If the file does not exist in the previous commit, abort, printing the error message
+    // File does not exist in that commit.
+    // Do not change the CWD.
+    public static void checkoutFileInCurCmt(String fileName) throws IOException {
+        Commit curCmt = getCommit(getHead());
+        if (!curCmt.fileToBlob.containsKey(fileName)) {
+            message("File does not exist in that commit.");
+            System.exit(0);
+        }
+        // get the file content in cur commit
+        String fileBlobHash = curCmt.fileToBlob.get(fileName);
+        File blobFile = join(BLOBS_DIR, fileBlobHash);
+        // the file content is in  readContentsAsString(blobFile)
+
+        // overwrite / create file, in CWD
+        File workingFile = join(CWD, fileName);
+        if (!workingFile.exists()) {
+            workingFile.createNewFile();
+        }
+        writeContents(workingFile, readContentsAsString(blobFile));
+    }
+
+
+    public static void checkoutFileInCmt(String cmtID, String fileName) {
+
+    }
+
+    public static void checkoutBranch(String branchName) {
+
+    }
+
 
 
 

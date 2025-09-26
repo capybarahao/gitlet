@@ -33,7 +33,10 @@ public class Main {
             case "commit":
                 // Every commit must have a non-blank message.
                 //  If it doesn’t, print the error message Please enter a commit message.
-                // This logic is in method.
+                if (args.length == 1) {
+                    Utils.message("Please enter a commit message.");
+                    System.exit(0);
+                }
                 validateNumArgs(args, 2);
                 Repository.commit(args[1]);
                 break;
@@ -57,6 +60,34 @@ public class Main {
                 validateNumArgs(args, 1);
                 Repository.status();
                 break;
+            case "checkout":
+                switch(args.length) {
+                    case 3: // checkout -- [file name]
+                        if (args[1].equals("--")) {
+                            Repository.checkoutFileInCurCmt(args[2]);
+                        }
+                        else {
+                            Utils.message("Incorrect operands.");
+                            System.exit(0);
+                        }
+                        break;
+                    case 4: // checkout [commit id] -- [file name]
+                        if (args[2].equals("--")) {
+                            Repository.checkoutFileInCmt(args[1], args[3]);
+                        }
+                        else {
+                            Utils.message("Incorrect operands.");
+                            System.exit(0);
+                        }
+                        break;
+                    case 2: // checkout [branch name]
+                        Repository.checkoutBranch(args[1]);
+                        break;
+                    default:
+                        Utils.message("Incorrect operands.");
+                        System.exit(0);
+                }
+
 
             // If a user inputs a command that doesn’t exist, print the message
             // No command with that name exists.
@@ -77,10 +108,6 @@ public class Main {
      * @param n Number of expected arguments
      */
     public static void validateNumArgs(String[] args, int n) {
-        if (args[0].equals("commit") && args.length == 1) {
-            Utils.message("Please enter a commit message.");
-            System.exit(0);
-        }
         if (args.length != n) {
             Utils.message("Incorrect operands.");
             System.exit(0);
