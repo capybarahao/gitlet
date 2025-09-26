@@ -87,6 +87,8 @@ public class Main {
                         Utils.message("Incorrect operands.");
                         System.exit(0);
                 }
+                break;
+
 
 
             // If a user inputs a command that doesn’t exist, print the message
