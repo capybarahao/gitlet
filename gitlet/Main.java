@@ -119,6 +119,7 @@ public class Main {
     // (i.e., one containing a .gitlet subdirectory), but is not in such a directory,
     // print the message
     // Not in an initialized Gitlet directory.
+    // TOdo
     public static void validateRepo(String cmd) {
         // if .gitlet subdirectory not exist
 

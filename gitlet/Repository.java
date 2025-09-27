@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,6 @@ import java.util.TreeMap;
 import static gitlet.Utils.*;
 import static gitlet.Utils.writeContents;
 
-// TODO: any imports you need here
 
 /** Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -182,7 +182,7 @@ public class Repository {
         String cmtHash = getHead();
         cmt.setParentA(cmtHash);
         // update metadata: message, timestamp
-        cmt.setTimestamp(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toString());
+        cmt.setTimestamp(formattedNowTime());
         cmt.setMessage(msg);
         // generate hash for this commit. no more changes to this cmt object from now
         cmtHash = sha1(serialize(cmt));
@@ -354,13 +354,23 @@ public class Repository {
     // File does not exist in that commit.
     // Do not change the CWD.
     public static void checkoutFileInCurCmt(String fileName) throws IOException {
-        Commit curCmt = getCommit(getHead());
-        if (!curCmt.fileToBlob.containsKey(fileName)) {
+        checkoutFileInCmt(getHead(), fileName);
+    }
+
+
+    public static void checkoutFileInCmt(String cmtID, String fileName) throws IOException {
+        File cmtFile = join(CMTS_DIR, cmtID);
+        if (!cmtFile.exists()) {
+            message("No commit with that id exists.");
+            System.exit(0);
+        }
+        Commit cmt = getCommit(cmtID);
+        if (!cmt.fileToBlob.containsKey(fileName)) {
             message("File does not exist in that commit.");
             System.exit(0);
         }
-        // get the file content in cur commit
-        String fileBlobHash = curCmt.fileToBlob.get(fileName);
+        // get the file content from commit
+        String fileBlobHash = cmt.fileToBlob.get(fileName);
         File blobFile = join(BLOBS_DIR, fileBlobHash);
         // the file content is in  readContentsAsString(blobFile)
 
@@ -372,13 +382,10 @@ public class Repository {
         writeContents(workingFile, readContentsAsString(blobFile));
     }
 
-
-    public static void checkoutFileInCmt(String cmtID, String fileName) {
-
-    }
-
     public static void checkoutBranch(String branchName) {
 
+
+        // Todo after branch done
     }
 
 
@@ -388,7 +395,7 @@ public class Repository {
 
 
     /**
-     * @return current commit (the HEAD).
+     * @return current commit hash (the HEAD).
      */
     private static String getHead() {
         return readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));
@@ -469,5 +476,14 @@ public class Repository {
         File commitObjFile = join(CMTS_DIR, cmtHash);
         commitObjFile.createNewFile();
         writeObject(commitObjFile, cmt);
+    }
+
+    static String formattedNowTime() {
+
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern("EEE MMM dd HH:mm:ss yyyy Z")
+                .withZone(ZoneId.of("Asia/Shanghai"));
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
+        return formatter.format(now).toString();
     }
 }
