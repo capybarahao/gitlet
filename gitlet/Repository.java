@@ -381,11 +381,34 @@ public class Repository {
         }
         writeContents(workingFile, readContentsAsString(blobFile));
     }
+    // Takes all files in the commit at the head of the given branch, and puts them in the working directory
+    // overwriting the versions of the files that are already there if they exist.
+    // Also, at the end of this command, the given branch will now be considered the current branch (HEAD).
+    // Any files that are tracked in the current branch but are not present in the checked-out branch
+    // are deleted. The staging area is cleared, unless the checked-out branch is the current branch
+    // (see Failure cases below).
+
+    // If a working file is untracked in the current branch and would be overwritten by the checkout, print
+    // There is an untracked file in the way; delete it, or add and commit it first.
+    // and exit; perform this check before doing anything else. Do not change the CWD.
 
     public static void checkoutBranch(String branchName) {
+        File branchFile = join(HEADS_DIR, branchName);
+        // If no branch with that name exists
+        if (!branchFile.exists()) {
+            message("No such branch exists.");
+            System.exit(0);
+        }
+        // If that branch is the current branch
+        String curBranch = readContentsAsString(HEAD).substring(6);
+        if (branchName.equals(curBranch)) {
+            message("No need to checkout the current branch.");
+            System.exit(0);
+        }
 
 
-        // Todo after branch done
+
+
     }
 
     public static void createBranch(String branchName) throws IOException {
@@ -472,6 +495,7 @@ public class Repository {
     }
 
     /**
+     * This sets head pointer(of current branch) to provided commit.
      * @param cmtHash commit's hash.
      *
      */
