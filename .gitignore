@@ -25,4 +25,5 @@ replay_pid*
 
 library-sp21.javalib/
 library-sp21/
-
+testing/test*/
+testing/stest*/

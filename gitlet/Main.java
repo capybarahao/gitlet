@@ -88,7 +88,10 @@ public class Main {
                         System.exit(0);
                 }
                 break;
-
+            case "branch":
+                validateNumArgs(args, 2);
+                Repository.createBranch(args[1]);
+                break;
 
 
             // If a user inputs a command that doesn’t exist, print the message

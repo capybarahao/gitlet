@@ -388,6 +388,19 @@ public class Repository {
         // Todo after branch done
     }
 
+    public static void createBranch(String branchName) throws IOException {
+
+        File branchFile = join(HEADS_DIR, branchName);
+        if (branchFile.exists()) {
+            message("A branch with that name already exists.");
+            System.exit(0);
+        }
+        branchFile.createNewFile();
+        writeContents(branchFile, getHead());
+    }
+
+
+
 
 
 
