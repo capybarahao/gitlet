@@ -392,19 +392,40 @@ public class Repository {
     // There is an untracked file in the way; delete it, or add and commit it first.
     // and exit; perform this check before doing anything else. Do not change the CWD.
 
-    public static void checkoutBranch(String branchName) {
-        File branchFile = join(HEADS_DIR, branchName);
+    public static void checkoutBranch(String targetBranch) {
+        File targetBranchFile = join(HEADS_DIR, targetBranch);
         // If no branch with that name exists
-        if (!branchFile.exists()) {
+        if (!targetBranchFile.exists()) {
             message("No such branch exists.");
             System.exit(0);
         }
         // If that branch is the current branch
         String curBranch = readContentsAsString(HEAD).substring(6);
-        if (branchName.equals(curBranch)) {
+        if (targetBranch.equals(curBranch)) {
             message("No need to checkout the current branch.");
             System.exit(0);
         }
+        // get the head commit of target branch
+        Commit targetBranchCmt = getCommit(readContentsAsString(targetBranchFile));
+        Commit curBranchCmt =getCommit(getHead());
+
+        // | WD has file3 | Current HEAD has file3 | Target HEAD has file3 | Result                                                          |
+        //| ------------ | ---------------------- | --------------------- | --------------------------------------------------------------- |
+        //| yes          | no                     | no                    | checkout succeeds, file stays                                   |
+        //| yes          | no                     | yes                   | **error: untracked file in the way**                            |
+        //| yes          | yes                    | yes/no                | checkout overwrites with target’s version (you lose WD changes) |
+
+        // this failure case occurs when in yes/no/yes situation
+        List<String> workingDirFilesList = plainFilenamesIn(CWD);
+        for (String fileName: workingDirFilesList) {
+            if (!curBranchCmt.fileToBlob.containsKey(fileName) && targetBranchCmt.fileToBlob.containsKey(fileName)) {
+                message("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+
+        // which set to iterate?
+
 
 
 
