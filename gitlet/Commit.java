@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -46,9 +47,18 @@ public class Commit implements Serializable {
     // factory method only for init()
     public static Commit createInitialCommit() {
         Commit initial = new Commit("initial commit", null, null);
-        initial.timestamp = ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC). toString();
+        initial.timestamp = formattedEpochTime();
         // Output: 1970-01-01T00:00:00Z
         return initial;
+    }
+
+    private static String formattedEpochTime() {
+
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern("EEE MMM dd HH:mm:ss yyyy Z")
+                .withZone(ZoneId.of("Asia/Shanghai"));
+        ZonedDateTime epoch = ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        return formatter.format(epoch).toString();
     }
 
     public void setMessage(String msg) {

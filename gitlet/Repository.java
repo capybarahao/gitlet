@@ -369,17 +369,7 @@ public class Repository {
             message("File does not exist in that commit.");
             System.exit(0);
         }
-        // get the file content from commit
-        String fileBlobHash = cmt.fileToBlob.get(fileName);
-        File blobFile = join(BLOBS_DIR, fileBlobHash);
-        // the file content is in  readContentsAsString(blobFile)
-
-        // overwrite / create file, in CWD
-        File workingFile = join(CWD, fileName);
-        if (!workingFile.exists()) {
-            workingFile.createNewFile();
-        }
-        writeContents(workingFile, readContentsAsString(blobFile));
+        writeCmtFileToCWD(cmt, fileName);
     }
     // Takes all files in the commit at the head of the given branch, and puts them in the working directory
     // overwriting the versions of the files that are already there if they exist.
@@ -392,7 +382,7 @@ public class Repository {
     // There is an untracked file in the way; delete it, or add and commit it first.
     // and exit; perform this check before doing anything else. Do not change the CWD.
 
-    public static void checkoutBranch(String targetBranch) {
+    public static void checkoutBranch(String targetBranch) throws IOException {
         File targetBranchFile = join(HEADS_DIR, targetBranch);
         // If no branch with that name exists
         if (!targetBranchFile.exists()) {
@@ -405,7 +395,7 @@ public class Repository {
             message("No need to checkout the current branch.");
             System.exit(0);
         }
-        // get the head commit of target branch
+        // get the head commit of both branches
         Commit targetBranchCmt = getCommit(readContentsAsString(targetBranchFile));
         Commit curBranchCmt =getCommit(getHead());
 
@@ -414,8 +404,9 @@ public class Repository {
         //| yes          | no                     | no                    | checkout succeeds, file stays                                   |
         //| yes          | no                     | yes                   | **error: untracked file in the way**                            |
         //| yes          | yes                    | yes/no                | checkout overwrites with target’s version (you lose WD changes) |
+        //| no           | no                     | yes                   | checkout create that file |
 
-        // this failure case occurs when in yes/no/yes situation
+        // this failure case occurs when in above yes/no/yes situation
         List<String> workingDirFilesList = plainFilenamesIn(CWD);
         for (String fileName: workingDirFilesList) {
             if (!curBranchCmt.fileToBlob.containsKey(fileName) && targetBranchCmt.fileToBlob.containsKey(fileName)) {
@@ -424,11 +415,22 @@ public class Repository {
             }
         }
 
-        // which set to iterate?
+        // iterate cur branch cmt files, to potential delete, yes /yes /no
+        for (String fileName: curBranchCmt.fileToBlob.keySet()) {
+            if (workingDirFilesList.contains(fileName) && !targetBranchCmt.fileToBlob.containsKey(fileName)) {
+                File fileToBeDel = join(CWD, fileName);
+                fileToBeDel.delete();
+            }
+        }
 
+        // iterate target branch cmt files, to overwrite and create,
+        for (String fileName: targetBranchCmt.fileToBlob.keySet()) {
+            writeCmtFileToCWD(targetBranchCmt, fileName);
+        }
 
-
-
+        // set head to target branch "heads/branchName"
+        String headRef = "heads" + System.getProperty("file.separator") + targetBranch;
+        writeContents(HEAD, headRef);
 
     }
 
@@ -543,5 +545,22 @@ public class Repository {
                 .withZone(ZoneId.of("Asia/Shanghai"));
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
         return formatter.format(now).toString();
+    }
+
+
+    // this assumes cmt contains that file
+    // if file already exists, overwrite it
+    static void writeCmtFileToCWD(Commit cmt, String fileName) throws IOException {
+        // get the file content from commit
+        String fileBlobHash = cmt.fileToBlob.get(fileName);
+        File blobFile = join(BLOBS_DIR, fileBlobHash);
+        // the file content is in  readContentsAsString(blobFile)
+
+        // overwrite / create file, in CWD
+        File workingFile = join(CWD, fileName);
+        if (!workingFile.exists()) {
+            workingFile.createNewFile();
+        }
+        writeContents(workingFile, readContentsAsString(blobFile));
     }
 }
