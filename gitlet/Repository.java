@@ -445,6 +445,21 @@ public class Repository {
         writeContents(branchFile, getHead());
     }
 
+    public static void rmBranch(String branchName) {
+        File branchFile = join(HEADS_DIR, branchName);
+        if (!branchFile.exists()) {
+            message("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        String curBranch = readContentsAsString(HEAD).substring(6);
+        if (branchName.equals(curBranch)) {
+            message("Cannot remove the current branch.");
+            System.exit(0);
+        }
+
+        branchFile.delete();
+
+    }
 
 
 

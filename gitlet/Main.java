@@ -92,6 +92,10 @@ public class Main {
                 validateNumArgs(args, 2);
                 Repository.createBranch(args[1]);
                 break;
+            case "rm-branch":
+                validateNumArgs(args, 2);
+                Repository.rmBranch(args[1]);
+                break;
 
 
             // If a user inputs a command that doesn’t exist, print the message
