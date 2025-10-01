@@ -99,6 +99,10 @@ public class Repository {
         // write commit object to file
         writeCmtObj(initial, cmtHash);
 
+        // index setup
+        TreeMap<String, String> index = new TreeMap<>();
+        writeObject(INDEX, index);
+
         // write the commit hash to head, (which leads to master)
         setHeadTo(cmtHash);
     }
@@ -190,9 +194,10 @@ public class Repository {
         // update head pointer
         setHeadTo(cmtHash);
 
+        // below is a wrong idea about clear staging area. Index should not clean to empty!!!
         // clear staging area/index
-        index.clear();
-        writeObject(INDEX, index);
+        // index.clear();
+        // writeObject(INDEX, index);
 
         // save commit obj, with its SHA1 as its file name.
         writeCmtObj(cmt, cmtHash);
