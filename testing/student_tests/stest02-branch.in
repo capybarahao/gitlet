@@ -1,0 +1,94 @@
+# Integration test for branch, checkout, and commit commands in Gitlet
+I definitions.inc
+> init
+<<<
+# Create initial file wug.txt
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "Initial wug.txt"
+<<<
+# Create and modify notwug.txt
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "Add notwug.txt"
+<<<
+# Create feature branch
+> branch feature
+<<<
+# Switch to feature branch and add feature_wug.txt
+> checkout feature
+<<<
++ feature_wug.txt feature_wug.txt
+> add feature_wug.txt
+<<<
+> commit "Add feature_wug.txt on feature branch"
+<<<
+# Modify wug.txt on feature branch
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "Modify wug.txt on feature branch"
+<<<
+# Capture commit history
+> log
+===
+${COMMIT_HEAD}
+Modify wug.txt on feature branch
+
+===
+${COMMIT_HEAD}
+Add feature_wug.txt on feature branch
+
+===
+${COMMIT_HEAD}
+Add notwug.txt
+
+===
+${COMMIT_HEAD}
+Initial wug.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+# Store commit UIDs
+# Modify wug.txt on feature branch
+D UID1 "${1}"
+# Add feature_wug.txt on feature branch
+D UID2 "${2}"
+# Add notwug.txt
+D UID3 "${3}"
+# Initial wug.txt
+D UID4 "${4}"
+# Checkout master branch
+> checkout master
+<<<
+# Verify files on master branch
+= wug.txt wug.txt
+= notwug.txt notwug.txt
+# Checkout specific commit file (UID4: Initial wug.txt)
+> checkout ${UID4} -- wug.txt
+<<<
+= wug.txt wug.txt
+# Checkout feature branch
+> checkout feature
+<<<
+# Verify files on feature branch
+= wug.txt notwug.txt
+= feature_wug.txt feature_wug.txt
+# Checkout specific commit file (UID3: Add notwug.txt) for wug.txt
+> checkout ${UID3} -- wug.txt
+<<<
+= wug.txt wug.txt
+# Checkout specific commit (UID2: Add feature_wug.txt on feature branch)
+> checkout ${UID2} -- feature_wug.txt
+<<<
+= feature_wug.txt feature_wug.txt
+# Additional test: Checkout wug.txt from UID1 (Modify wug.txt on feature branch)
+> checkout ${UID1} -- wug.txt
+<<<
+= wug.txt notwug.txt
+<<<

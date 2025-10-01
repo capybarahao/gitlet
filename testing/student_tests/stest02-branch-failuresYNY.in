@@ -1,0 +1,38 @@
+I definitions.inc
+> init
+<<<
+# Create initial file wug.txt and commit
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "Initial wug.txt"
+<<<
+# Create and commit notwug.txt
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
++ stray.txt dog.txt
+> add stray.txt
+<<<
+> commit "Add notwug.txt and stray(dog)"
+<<<
+# Create new branch feature
+> branch feature
+<<<
+# Switch to feature and add feature_wug.txt
+> checkout feature
+<<<
++ feature_wug.txt feature_wug.txt
+> add feature_wug.txt
+<<<
+> rm stray.txt
+<<<
+> commit "Add feature_wug.txt, rm stray on feature branch"
+<<<
+# Case 1: failure yes/no/yes
+# Working dir has stray file 'stray.txt'
++ stray.txt stray.txt
+# Checkout master should fail because stray.txt is untracked and will be overwritten
+> checkout master
+<<<
+
