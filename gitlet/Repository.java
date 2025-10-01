@@ -190,6 +190,10 @@ public class Repository {
         // update head pointer
         setHeadTo(cmtHash);
 
+        // clear staging area/index
+        index.clear();
+        writeObject(INDEX, index);
+
         // save commit obj, with its SHA1 as its file name.
         writeCmtObj(cmt, cmtHash);
     }
@@ -427,6 +431,11 @@ public class Repository {
         for (String fileName: targetBranchCmt.fileToBlob.keySet()) {
             writeCmtFileToCWD(targetBranchCmt, fileName);
         }
+
+        // clear staging area/index
+        TreeMap<String, String> index = readIndex();
+        index.clear();
+        writeObject(INDEX, index);
 
         // set head to target branch "heads/branchName"
         String headRef = "heads" + System.getProperty("file.separator") + targetBranch;
