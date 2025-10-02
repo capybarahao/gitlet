@@ -334,19 +334,22 @@ public class Repository {
 
         System.out.println();
 
+        Commit headCmt = getCommit(getHead());
+
         System.out.println("=== Staged Files ===");
 
         TreeMap<String, String> index = readIndex();
-        for (String key : index.keySet()) {
-            System.out.println(key);
+        for (String skey : index.keySet()) {
+            if (!headCmt.fileToBlob.containsKey(skey) || !index.get(skey).equals(headCmt.fileToBlob.get(skey))){
+                System.out.println(skey);
+            }
         }
 
         System.out.println();
 
         System.out.println("=== Removed Files ===");
 
-        Commit cur = getCommit(getHead());
-        for(String skey: cur.fileToBlob.keySet()) {
+        for(String skey: headCmt.fileToBlob.keySet()) {
             if (!index.containsKey(skey)){
                 System.out.println(skey);
             }
@@ -362,7 +365,7 @@ public class Repository {
     // If the file does not exist in the previous commit, abort, printing the error message
     // File does not exist in that commit.
     // Do not change the CWD.
-    public static void checkoutFileInCurCmt(String fileName) throws IOException {
+    public static void checkoutFileInHeadCmt(String fileName) throws IOException {
         checkoutFileInCmt(getHead(), fileName);
     }
 
@@ -437,9 +440,9 @@ public class Repository {
             writeCmtFileToCWD(targetBranchCmt, fileName);
         }
 
-        // clear staging area/index
-        TreeMap<String, String> index = readIndex();
-        index.clear();
+        // clear staging area/index, this means set the index to target branch head commit mapping
+        // read index, iterate it, "copy" index to commit's fileToBlob
+        TreeMap<String, String> index = (TreeMap<String, String>) targetBranchCmt.fileToBlob;
         writeObject(INDEX, index);
 
         // set head to target branch "heads/branchName"
@@ -483,7 +486,7 @@ public class Repository {
 
 
     /**
-     * @return current commit hash (the HEAD).
+     * @return current commit hash (the HEAD commit).
      */
     private static String getHead() {
         return readContentsAsString(join(GITLET_DIR, readContentsAsString(HEAD)));

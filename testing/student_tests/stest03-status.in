@@ -1,0 +1,45 @@
+# Integration test for status command in Gitlet
+I definitions.inc
+> init
+<<<
+# Create initial file wug.txt
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "Initial commit with wug.txt"
+<<<
+# Create another file and stage it (should appear under Staged Files)
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+# Create a branch and switch to it (to test branch display in status)
+> branch dev
+<<<
+> checkout dev
+<<<
+# Remove a tracked file (should appear under Removed Files)
+> rm wug.txt
+<<<
++ dog.txt dog.txt
+> add dog.txt
+<<<
++ notwug.txt stray.txt
+> add notwug.txt
+<<<
+# Run status to capture output
+> status
+<<<
+=== Branches ===
+*dev
+master
+
+=== Staged Files ===
+dog.txt
+notwug.txt
+
+=== Removed Files ===
+wug.txt
+
+<<<*
+
+# This should pass, content same, but it errors?

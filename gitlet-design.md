@@ -19,6 +19,7 @@ Get started in 7.25
 - for example. stageForAdd should be String / byte[] map, instead of string/string one.
 
 - INDEX stores both add and remove info? 
+- learning: index is kind of never cleared to empty, it always reflects the head commit mapping. 
 
 ## Testing Command
 - make 

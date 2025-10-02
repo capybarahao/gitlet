@@ -64,7 +64,7 @@ public class Main {
                 switch(args.length) {
                     case 3: // checkout -- [file name]
                         if (args[1].equals("--")) {
-                            Repository.checkoutFileInCurCmt(args[2]);
+                            Repository.checkoutFileInHeadCmt(args[2]);
                         }
                         else {
                             Utils.message("Incorrect operands.");
