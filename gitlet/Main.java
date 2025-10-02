@@ -1,18 +1,29 @@
 package gitlet;
 
+import java.io.File;
 import java.io.IOException;
+
+import static gitlet.Utils.join;
+import static gitlet.Utils.message;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author Qiyue Hao
  */
 public class Main {
 
+    public static void main(String[] args) {
+        try {
+            runGitlet(args);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ...
      *  init
      *  add
      */
-    public static void main(String[] args) throws IOException {
+    private static void runGitlet(String[] args) throws IOException {
         // If a user doesn’t input any arguments, print the message
         // Please enter a command.
         // and exit.
@@ -27,10 +38,12 @@ public class Main {
                 Repository.init();
                 break;
             case "add":
+                validateRepo();
                 validateNumArgs(args, 2);
                 Repository.add(args[1]);
                 break;
             case "commit":
+                validateRepo();
                 // Every commit must have a non-blank message.
                 //  If it doesn’t, print the error message Please enter a commit message.
                 if (args.length == 1) {
@@ -41,26 +54,32 @@ public class Main {
                 Repository.commit(args[1]);
                 break;
             case "rm":
+                validateRepo();
                 validateNumArgs(args, 2);
                 Repository.rm(args[1]);
                 break;
             case "log":
+                validateRepo();
                 validateNumArgs(args, 1);
                 Repository.log();
                 break;
             case "global-log":
+                validateRepo();
                 validateNumArgs(args, 1);
                 Repository.global_log();
                 break;
             case "find":
+                validateRepo();
                 validateNumArgs(args, 2);
                 Repository.find(args[1]);
                 break;
             case "status":
+                validateRepo();
                 validateNumArgs(args, 1);
                 Repository.status();
                 break;
             case "checkout":
+                validateRepo();
                 switch(args.length) {
                     case 3: // checkout -- [file name]
                         if (args[1].equals("--")) {
@@ -89,14 +108,17 @@ public class Main {
                 }
                 break;
             case "branch":
+                validateRepo();
                 validateNumArgs(args, 2);
                 Repository.createBranch(args[1]);
                 break;
             case "rm-branch":
+                validateRepo();
                 validateNumArgs(args, 2);
                 Repository.rmBranch(args[1]);
                 break;
             case "reset":
+                validateRepo();
                 validateNumArgs(args, 2);
                 Repository.reset(args[1]);
                 break;
@@ -130,9 +152,13 @@ public class Main {
     // (i.e., one containing a .gitlet subdirectory), but is not in such a directory,
     // print the message
     // Not in an initialized Gitlet directory.
-    // TOdo
-    public static void validateRepo(String cmd) {
+    public static void validateRepo() {
         // if .gitlet subdirectory not exist
-
+        File CWD = new File(System.getProperty("user.dir"));
+        File GITLET_DIR = join(CWD, ".gitlet");
+        if (!GITLET_DIR.exists()) {
+            message("Not in an initialized Gitlet directory.");
+            System.exit(0);
+        }
     }
 }
