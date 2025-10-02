@@ -176,11 +176,13 @@ public class Repository {
         cmt.fileToBlob.clear();
 
         // read index, iterate it, "copy" index to commit's fileToBlob
-        for (Map.Entry<String, String> entry : index.entrySet()) {
-            String fileName = entry.getKey();
-            String blobHash = entry.getValue();
-            cmt.fileToBlob.put(fileName, blobHash);
-        }
+//        for (Map.Entry<String, String> entry : index.entrySet()) {
+//            String fileName = entry.getKey();
+//            String blobHash = entry.getValue();
+//            cmt.fileToBlob.put(fileName, blobHash);
+//        }
+        //safe copy instead of iteration process above.
+        cmt.fileToBlob = new TreeMap<>(index);
 
         // update the parent ref (add this commit to the commit tree)
         String cmtHash = getHead();
@@ -235,7 +237,6 @@ public class Repository {
         if (cmt.fileToBlob.containsKey(fileName)) {
             restrictedDelete(fileToRm);
         }
-
 
     }
 
@@ -441,11 +442,11 @@ public class Repository {
         }
 
         // clear staging area/index, this means set the index to target branch head commit mapping
-        // read index, iterate it, "copy" index to commit's fileToBlob
-        TreeMap<String, String> index = (TreeMap<String, String>) targetBranchCmt.fileToBlob;
+        // this is safe copy
+        TreeMap<String, String> index = new TreeMap<>(targetBranchCmt.fileToBlob);
         writeObject(INDEX, index);
 
-        // set head to target branch "heads/branchName"
+        // set target branch as current branch "heads/branchName"
         String headRef = "heads" + System.getProperty("file.separator") + targetBranch;
         writeContents(HEAD, headRef);
 
@@ -477,6 +478,58 @@ public class Repository {
         branchFile.delete();
 
     }
+
+    // Checks out all the files tracked by the given commit. Removes tracked files that are not present
+    // in that commit. Also moves the current branch’s head to that commit node
+    // See the intro for an example of what happens to the head pointer after using reset.
+    // The [commit id] may be abbreviated as for checkout. The staging area is cleared.
+    // The command is essentially checkout of an arbitrary commit that also changes the current branch head.
+    // If no commit with the given id exists, print
+    // No commit with that id exists.
+    // If a working file is untracked in the current branch and would be overwritten by the reset, print
+    // There is an untracked file in the way; delete it, or add and commit it first.
+
+    public static void reset(String cmtID) throws IOException {
+        File cmtFile = join(CMTS_DIR, cmtID);
+        if (!cmtFile.exists()) {
+            message("No commit with that id exists.");
+            System.exit(0);
+        }
+
+        Commit curHeadCmt = getCommit(getHead());
+        Commit targetCmt = getCommit(cmtID);
+
+        // below is very similar code to checkout branch
+        List<String> workingDirFilesList = plainFilenamesIn(CWD);
+        for (String fileName: workingDirFilesList) {
+            if (!curHeadCmt.fileToBlob.containsKey(fileName) && targetCmt.fileToBlob.containsKey(fileName)) {
+                message("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+
+        // iterate cur cmt files, to potential delete, yes /yes /no
+        for (String fileName: curHeadCmt.fileToBlob.keySet()) {
+            if (workingDirFilesList.contains(fileName) && !targetCmt.fileToBlob.containsKey(fileName)) {
+                File fileToBeDel = join(CWD, fileName);
+                fileToBeDel.delete();
+            }
+        }
+
+        // iterate target cmt files, to overwrite and create,
+        for (String fileName: targetCmt.fileToBlob.keySet()) {
+            writeCmtFileToCWD(targetCmt, fileName);
+        }
+
+        // clear staging area/index, this means set the index to target commit mapping
+        // this is safe copy
+        TreeMap<String, String> index = new TreeMap<>(targetCmt.fileToBlob);
+        writeObject(INDEX, index);
+
+        setHeadTo(cmtID);
+    }
+
+
 
 
 
