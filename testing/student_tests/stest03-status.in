@@ -28,7 +28,6 @@ I definitions.inc
 <<<
 # Run status to capture output
 > status
-<<<
 === Branches ===
 *dev
 master
@@ -40,6 +39,8 @@ notwug.txt
 === Removed Files ===
 wug.txt
 
-<<<*
+=== Modifications Not Staged For Commit ===
 
-# This should pass, content same, but it errors?
+=== Untracked Files ===
+
+<<<
