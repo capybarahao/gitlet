@@ -534,9 +534,26 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
+        // If there are staged additions or removals present, print the error message
+        // You have uncommitted changes.
+        // and exit
+        TreeMap<String, String> index = readIndex();
+        equals.
+
+        // If a branch with the given name does not exist, print the error message
+        // A branch with that name does not exist.
+
+        // If attempting to merge a branch with itself, print the error message
+        // Cannot merge a branch with itself.
+
+        // If merge would generate an error because the commit that it does has no changes in it,
+        // just let the normal commit error message for this go through
+
+        // If an untracked file in the current commit would be overwritten or deleted by the merge, print
+        // There is an untracked file in the way; delete it, or add and commit it first.
+
 
     }
-
 
 
 
