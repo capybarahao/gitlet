@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static gitlet.Utils.*;
 import static gitlet.Utils.writeContents;
@@ -538,19 +535,35 @@ public class Repository {
         // You have uncommitted changes.
         // and exit
         TreeMap<String, String> index = readIndex();
-        equals.
+        Commit curHeadCmt = getCommit(getHead());
+        if (curHeadCmt.fileToBlob.equals(index)) {
+            message("You have uncommitted changes.");
+            System.exit(0);
+        }
 
         // If a branch with the given name does not exist, print the error message
         // A branch with that name does not exist.
+        File branchFile = join(HEADS_DIR, branchName);
+        if (!branchFile.exists()) {
+            message("A branch with that name does not exist.");
+            System.exit(0);
+        }
 
         // If attempting to merge a branch with itself, print the error message
         // Cannot merge a branch with itself.
+        String curBranch = readContentsAsString(HEAD).substring(6);
+        if (curBranch.equals(branchName)) {
+            message("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
 
         // If merge would generate an error because the commit that it does has no changes in it,
         // just let the normal commit error message for this go through
+        // Todo
 
         // If an untracked file in the current commit would be overwritten or deleted by the merge, print
         // There is an untracked file in the way; delete it, or add and commit it first.
+        // todo
 
 
     }
@@ -670,5 +683,47 @@ public class Repository {
             workingFile.createNewFile();
         }
         writeContents(workingFile, readContentsAsString(blobFile));
+    }
+
+    /**
+     * return the split point cmt hash.
+     * The split point is the LATEST common ancestor of the current and given branch heads
+     * @param branchName target branch name.
+     */
+    static String getSplitPointCmt(String branchName) {
+        // do Reverse BFS / DFS for both nodes, get two ancestors group.
+        // then find all common ancestors, then find the last one.
+        //
+        Commit curCmt = getCommit(getHead());
+        Commit branchCmt = getCommit(readContentsAsString(join(HEADS_DIR, branchName)));
+
+        curCmt.getParentA()
+
+
+        return null;
+    }
+    /**
+     * return the commit's all ancestors.
+     * not including the commit itself.
+     * @param cmtHash commit's hash.
+     * @return a set of cmt hash, including this commit's all ancestors.
+     */
+    static Set<String> getAncestors(String cmtHash) {
+        Commit curCmt = getCommit(cmtHash);
+        // 1. make a Set to store visited ancestors
+        Set<String> acsts;
+        // 2. make a Stack (or Deque) for traversal
+        Stack<>
+        // 3. push the starting commit
+
+        // 4. while stack not empty:
+        // pop one commit
+        // look up its parents from the map
+        // for each parent:
+            // if not seen before:
+                // add to ancestors
+                // push parent into stack
+
+        // 5. return the set of ancestors
     }
 }

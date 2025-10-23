@@ -21,6 +21,8 @@ Get started in 7.25
 - INDEX stores both add and remove info? 
 - learning: index is kind of never cleared to empty, it always reflects the head commit mapping. 
 
+- "ANY recursive algorithm can be implemented using iteration and a stack."
+
 ## Testing Command
 - make 
 - make clean
