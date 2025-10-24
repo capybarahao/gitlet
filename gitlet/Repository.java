@@ -267,7 +267,7 @@ public class Repository {
     }
 
     public static void global_log() {
-        List<String> cmtFiles = Utils.plainFilenamesIn(CMTS_DIR);
+        List<String> cmtFiles = plainFilenamesIn(CMTS_DIR);
         for (String cmt: cmtFiles) {
             Commit p = getCommit(cmt);
 
@@ -289,7 +289,7 @@ public class Repository {
     }
 
     public static void find(String msg) {
-        List<String> cmtFiles = Utils.plainFilenamesIn(CMTS_DIR);
+        List<String> cmtFiles = plainFilenamesIn(CMTS_DIR);
         Commit p = null;
         boolean found = false;
         for (String cmt: cmtFiles) {
@@ -318,7 +318,7 @@ public class Repository {
 
     public static void status() {
         System.out.println("=== Branches ===");
-        List<String> branches = Utils.plainFilenamesIn(HEADS_DIR);
+        List<String> branches = plainFilenamesIn(HEADS_DIR);
         String curBranch = readContentsAsString(HEAD).substring(6);
 
         // Sort the list in lexicographical order
@@ -694,10 +694,16 @@ public class Repository {
         // do Reverse BFS / DFS for both nodes, get two ancestors group.
         // then find all common ancestors, then find the last one.
         //
-        Commit curCmt = getCommit(getHead());
-        Commit branchCmt = getCommit(readContentsAsString(join(HEADS_DIR, branchName)));
+        String curCmtHash = getHead();
+        String branchCmtHash = readContentsAsString(join(HEADS_DIR, branchName));
+        // get ancestors of both branch
+        Set<String> curAncestors = getAncestors(curCmtHash);
+        Set<String> bAncestors = getAncestors(branchCmtHash);
+        // get common ancestors among two sets
+        Set<String> common = new HashSet<>(curAncestors);
+        common.retainAll(bAncestors);
 
-        curCmt.getParentA()
+        // find the latest common ancestor
 
 
         return null;
@@ -711,19 +717,31 @@ public class Repository {
     static Set<String> getAncestors(String cmtHash) {
         Commit curCmt = getCommit(cmtHash);
         // 1. make a Set to store visited ancestors
-        Set<String> acsts;
+        Set<String> acsts = new HashSet<>();
         // 2. make a Stack (or Deque) for traversal
-        Stack<>
+        Stack<String> fringe = new Stack<>();
         // 3. push the starting commit
-
+        fringe.push(cmtHash);
         // 4. while stack not empty:
-        // pop one commit
-        // look up its parents from the map
-        // for each parent:
-            // if not seen before:
-                // add to ancestors
-                // push parent into stack
-
+        while (!fringe.empty()) {
+            // pop one commit
+            String sHash = fringe.pop();
+            // look up its parents from the map
+            Set<String> parents = getCommit(sHash).getParents();
+            if (parents != null) { // have at least one parent
+                // for each parent
+                for (String p : parents) {
+                    // if not seen before:
+                    if (!acsts.contains(p)) {
+                        // add to ancestors
+                        // push parent into stack
+                        acsts.add(p);
+                        fringe.push(p);
+                    }
+                }
+            }
+        }
         // 5. return the set of ancestors
+        return acsts;
     }
 }

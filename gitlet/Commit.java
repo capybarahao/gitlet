@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /** Represents a gitlet commit object.
@@ -91,5 +92,18 @@ public class Commit implements Serializable {
 
     public String getParentB() {
         return parentB;
+    }
+
+    public Set<String> getParents() {
+        Set<String> parents = null;
+        String pa = getParentA();
+        String pb = getParentB();
+        if (pa != null) {
+            parents.add(pa);
+        }
+        if (pb != null) {
+            parents.add(pb);
+        }
+        return parents;
     }
 }
