@@ -185,7 +185,7 @@ public class Repository {
         String cmtHash = getHead();
         cmt.setParentA(cmtHash);
         // update metadata: message, timestamp
-        cmt.setTimestamp(formattedNowTime());
+        cmt.setTimestamp();
         cmt.setMessage(msg);
         // generate hash for this commit. no more changes to this cmt object from now
         cmtHash = sha1(serialize(cmt));
@@ -254,7 +254,7 @@ public class Repository {
                 System.out.printf("Merge: %s %s%n",p.getParentA().substring(0,7), p.getParentB().substring(0,7));
             }
 
-            System.out.printf("Date: %s%n", p.getTimestamp());
+            System.out.printf("Date: %s%n", p.getTimestampString());
             System.out.println(p.getMessage());
             System.out.println();
             cmtHash = p.getParentA();
@@ -282,7 +282,7 @@ public class Repository {
                 System.out.printf("Merge: %s %s%n",p.getParentA().substring(0,7), p.getParentB().substring(0,7));
             }
 
-            System.out.printf("Date: %s%n", p.getTimestamp());
+            System.out.printf("Date: %s%n", p.getTimestampString());
             System.out.println(p.getMessage());
             System.out.println();
         }
@@ -659,14 +659,7 @@ public class Repository {
         writeObject(commitObjFile, cmt);
     }
 
-    static String formattedNowTime() {
 
-        DateTimeFormatter formatter = DateTimeFormatter
-                .ofPattern("EEE MMM dd HH:mm:ss yyyy Z")
-                .withZone(ZoneId.of("Asia/Shanghai"));
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
-        return formatter.format(now).toString();
-    }
 
 
     // this assumes cmt contains that file
@@ -703,14 +696,28 @@ public class Repository {
         Set<String> common = new HashSet<>(curAncestors);
         common.retainAll(bAncestors);
 
-        // find the latest common ancestor
+        // find the latest common ancestor, by timestamp!!!!!!
+        // definition: A latest common ancestor is a common ancestor that is not an ancestor of any other common ancestor
 
+        String latestCmtHash = null;
+        ZonedDateTime latestTime = null;
+        for (String cmtHash : common) {
+            Commit c = getCommit(cmtHash);
+            ZonedDateTime time = c.getTimestamp();
+            if (latestTime == null || time.isAfter(latestTime)) {
+                latestTime = time;
+                latestCmtHash = cmtHash;
+            }
+        }
 
-        return null;
+        return latestCmtHash;
     }
     /**
      * return the commit's all ancestors.
      * not including the commit itself.
+     *
+     * todo should this include the commit itself ?????????????????????????
+     *
      * @param cmtHash commit's hash.
      * @return a set of cmt hash, including this commit's all ancestors.
      */
@@ -743,5 +750,19 @@ public class Repository {
         }
         // 5. return the set of ancestors
         return acsts;
+    }
+    /**
+     * check if target is ancestor of other.
+     * @param target target commit's hash.
+     * @return true if target commit is ancestor of other commit(s)
+     */
+
+    static Boolean isAncestor(String target, String other) {
+        Boolean isAncestor = false;
+        Set<String> acsts = getAncestors(other);
+        if (acsts.contains(target)) {
+            isAncestor = true;
+        }
+        return isAncestor;
     }
 }
