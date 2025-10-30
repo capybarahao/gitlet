@@ -530,20 +530,22 @@ public class Repository {
         setHeadTo(cmtID);
     }
 
-    public static void merge(String branchName) {
+    public static void merge(String givenBranch) throws IOException {
+
+        TreeMap<String, String> index = readIndex();
+        String curCmtHash = getHead();
+        Commit curHeadCmt = getCommit(curCmtHash);
         // If there are staged additions or removals present, print the error message
         // You have uncommitted changes.
         // and exit
-        TreeMap<String, String> index = readIndex();
-        Commit curHeadCmt = getCommit(getHead());
-        if (curHeadCmt.fileToBlob.equals(index)) {
+        if (!curHeadCmt.fileToBlob.equals(index)) {
             message("You have uncommitted changes.");
             System.exit(0);
         }
 
         // If a branch with the given name does not exist, print the error message
         // A branch with that name does not exist.
-        File branchFile = join(HEADS_DIR, branchName);
+        File branchFile = join(HEADS_DIR, givenBranch);
         if (!branchFile.exists()) {
             message("A branch with that name does not exist.");
             System.exit(0);
@@ -552,18 +554,48 @@ public class Repository {
         // If attempting to merge a branch with itself, print the error message
         // Cannot merge a branch with itself.
         String curBranch = readContentsAsString(HEAD).substring(6);
-        if (curBranch.equals(branchName)) {
+        if (curBranch.equals(givenBranch)) {
             message("Cannot merge a branch with itself.");
             System.exit(0);
         }
 
-        // If merge would generate an error because the commit that it does has no changes in it,
+        // get the given branch head
+        String givenCmtHash = readContentsAsString(branchFile);
+        Commit givenCmt = getCommit(givenCmtHash);
+        // get the split point commit
+        String spCmtHash = getSplitPointCmt(givenBranch);
+        Commit spCmt = getCommit(spCmtHash);
+
+        // If the split point is the same commit as the given branch, then we do nothing;
+        // the merge is complete, and the operation ends with the message
+        // Given branch is an ancestor of the current branch.
+        if (spCmtHash.equals(givenCmtHash)) {
+            message("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+
+        // If the split point is the current branch, then the effect is to check out the given branch,
+        // and the operation ends after printing the message
+        // Current branch fast-forwarded.
+        if (spCmtHash.equals(curCmtHash)) {
+            checkoutBranch(givenBranch);
+            message("Current branch fast-forwarded.");
+            System.exit(0);
+        }
+
+        // Failure case: If merge would generate an error because the commit that it does has no changes in it,
         // just let the normal commit error message for this go through
         // Todo
 
-        // If an untracked file in the current commit would be overwritten or deleted by the merge, print
+        // Failure case: If an untracked file in the current commit would be overwritten or deleted by the merge, print
         // There is an untracked file in the way; delete it, or add and commit it first.
         // todo
+        // working dir / sp cur given
+
+        // !! Now do a new commit
+        // remember the core of 3 way merge: Apply the changes made in given (since split) onto current.
+
+
 
 
     }
@@ -660,8 +692,6 @@ public class Repository {
     }
 
 
-
-
     // this assumes cmt contains that file
     // if file already exists, overwrite it
     static void writeCmtFileToCWD(Commit cmt, String fileName) throws IOException {
@@ -714,17 +744,16 @@ public class Repository {
     }
     /**
      * return the commit's all ancestors.
-     * not including the commit itself.
-     *
-     * todo should this include the commit itself ?????????????????????????
+     * INCLUDING the commit itself.
      *
      * @param cmtHash commit's hash.
-     * @return a set of cmt hash, including this commit's all ancestors.
+     * @return a set of cmt hash, including this commit's all ancestors, and the commit itself.
      */
     static Set<String> getAncestors(String cmtHash) {
         Commit curCmt = getCommit(cmtHash);
         // 1. make a Set to store visited ancestors
         Set<String> acsts = new HashSet<>();
+        acsts.add(cmtHash);
         // 2. make a Stack (or Deque) for traversal
         Stack<String> fringe = new Stack<>();
         // 3. push the starting commit
