@@ -534,11 +534,11 @@ public class Repository {
 
         TreeMap<String, String> index = readIndex();
         String curCmtHash = getHead();
-        Commit curHeadCmt = getCommit(curCmtHash);
+        Commit curCmt = getCommit(curCmtHash);
         // If there are staged additions or removals present, print the error message
         // You have uncommitted changes.
         // and exit
-        if (!curHeadCmt.fileToBlob.equals(index)) {
+        if (!curCmt.fileToBlob.equals(index)) {
             message("You have uncommitted changes.");
             System.exit(0);
         }
@@ -594,7 +594,83 @@ public class Repository {
 
         // !! Now do a new commit
         // remember the core of 3 way merge: Apply the changes made in given (since split) onto current.
+        Map<String, String> newFTB = new TreeMap<String, String>(curCmt.fileToBlob);
 
+        // Create a big set including all files related, so that all edge cases being handled
+        Set<String> allFiles= new HashSet<>();
+        allFiles.addAll(givenCmt.fileToBlob.keySet());
+        allFiles.addAll(curCmt.fileToBlob.keySet());
+        allFiles.addAll(spCmt.fileToBlob.keySet());
+
+        for (String file : allFiles) {
+            String givenBlobHash = givenCmt.fileToBlob.get(file);
+            String curBlobHash = curCmt.fileToBlob.get(file);
+            String spBlobHash = spCmt.fileToBlob.get(file);
+
+            if (spBlobHash != null) {
+                if (givenBlobHash != null) {
+                    // 1. modified in the given branch since the split point, but not modified in the current branch since the split point
+                    // changed to  version in the given branch, then all be automatically staged
+                    if (!Objects.equals(spBlobHash, givenBlobHash) && Objects.equals(spBlobHash, curBlobHash)) {
+                        newFTB.put(file, givenBlobHash);
+                        index.put(file, givenBlobHash);
+                        continue;
+                    }
+                    // 7. present at the split point, unmodified in the given branch, and absent in the current branch
+                    // should remain absent.
+                    if (curBlobHash == null && Objects.equals(spBlobHash, givenBlobHash)) {
+                        continue;
+                    }
+                }
+                else { // given == null
+                    // 6. present at the split point, unmodified in the current branch, and absent in the given branch
+                    // should be removed (and untracked).
+                    if (Objects.equals(spBlobHash, curBlobHash)) {
+                        newFTB.remove(file);
+                        index.remove(file);
+                        continue;
+                    }
+                }
+
+                // 2. modified in the current branch but not in the given branch since the split point
+                // should stay as they are.
+                if (curBlobHash != null && givenBlobHash != null &&
+                        !Objects.equals(spBlobHash, curBlobHash) && Objects.equals(spBlobHash, givenBlobHash)) {
+                    continue;
+                }
+
+                // 3. modified in both the current and given branch in the same way
+                // (i.e., both files now have the same content or were both removed)
+                // left unchanged by the merge.
+                if (!Objects.equals(spBlobHash, givenBlobHash) && Objects.equals(givenBlobHash, curBlobHash)) {
+                    continue;
+                }
+            }
+            else { // spBlobHash == null
+                // 4. not present at the split point and are present only in the current branch
+                // should remain as they are.
+                if (givenBlobHash == null) {
+                    continue;
+                }
+                // 5. not present at the split point and are present only in the given branch
+                // should be checked out and staged.
+                if (curBlobHash == null) {
+                    newFTB.put(file, givenBlobHash);
+                    index.put(file, givenBlobHash);
+                    continue;
+                }
+            }
+
+            // conflict
+            // modified in different ways in the current and given branches are in conflict.
+            // “Modified in different ways” can mean that the contents of both are changed and different from other,
+            // or the contents of one are changed and the other file is deleted,
+            // or the file was absent at the split point and has different contents in the given and current branches.
+
+
+
+
+        }
 
 
 
