@@ -479,7 +479,7 @@ public class Repository {
             System.exit(0);
         }
 
-        branchFile.delete();
+        restrictedDelete(branchFile);
 
     }
 
@@ -516,7 +516,7 @@ public class Repository {
         for (String fileName: curHeadCmt.fileToBlob.keySet()) {
             if (workingDirFilesList.contains(fileName) && !targetCmt.fileToBlob.containsKey(fileName)) {
                 File fileToBeDel = join(CWD, fileName);
-                fileToBeDel.delete();
+                restrictedDelete(fileToBeDel);
             }
         }
 
