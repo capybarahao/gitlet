@@ -158,7 +158,7 @@ public class Repository {
     // Finally, files tracked in the current commit may be untracked in the new commit
     // as a result being staged for removal by the rm command (below).
 
-    public static void commit(String msg) throws IOException {
+    public static void commit(String msg, String mergedHead) throws IOException {
         // If no files have been staged, abort. (meaning index = fileToAdd?)
         // Print the message No changes added to the commit.
         Commit cmt = getCommit(getHead());
@@ -184,6 +184,9 @@ public class Repository {
         // update the parent ref (add this commit to the commit tree)
         String cmtHash = getHead();
         cmt.setParentA(cmtHash);
+        if (mergedHead != null) { // it's a merged commit. called from merge method
+            cmt.setParentB(mergedHead);
+        }
         // update metadata: message, timestamp
         cmt.setTimestamp();
         cmt.setMessage(msg);
@@ -433,7 +436,7 @@ public class Repository {
         for (String fileName: curBranchCmt.fileToBlob.keySet()) {
             if (workingDirFilesList.contains(fileName) && !targetBranchCmt.fileToBlob.containsKey(fileName)) {
                 File fileToBeDel = join(CWD, fileName);
-                fileToBeDel.delete();
+                restrictedDelete(fileToBeDel);
             }
         }
 
@@ -535,6 +538,9 @@ public class Repository {
         TreeMap<String, String> index = readIndex();
         String curCmtHash = getHead();
         Commit curCmt = getCommit(curCmtHash);
+
+        // Failure cases, before ANYTHING
+
         // If there are staged additions or removals present, print the error message
         // You have uncommitted changes.
         // and exit
@@ -566,6 +572,11 @@ public class Repository {
         String spCmtHash = getSplitPointCmt(givenBranch);
         Commit spCmt = getCommit(spCmtHash);
 
+        // Failure case: If merge would generate an error because the commit that it does has no changes in it,
+        // just let the normal commit error message for this go through
+        // no to do
+
+
         // If the split point is the same commit as the given branch, then we do nothing;
         // the merge is complete, and the operation ends with the message
         // Given branch is an ancestor of the current branch.
@@ -583,24 +594,31 @@ public class Repository {
             System.exit(0);
         }
 
-        // Failure case: If merge would generate an error because the commit that it does has no changes in it,
-        // just let the normal commit error message for this go through
-        // Todo
-
         // Failure case: If an untracked file in the current commit would be overwritten or deleted by the merge, print
         // There is an untracked file in the way; delete it, or add and commit it first.
-        // todo
-        // working dir / sp cur given
+        // This case is positioned here bc The untracked-file check is only needed when
+        // about to modify the CWD
 
-        // !! Now do a new commit
+        // below is very similar code to checkout branch
+        List<String> workingDirFilesList = plainFilenamesIn(CWD);
+        for (String fileName: workingDirFilesList) {
+            if (!curCmt.fileToBlob.containsKey(fileName) && givenCmt.fileToBlob.containsKey(fileName)) {
+                message("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+
+
+        // !! Now do a new commit, change file contents in CWD as well
         // remember the core of 3 way merge: Apply the changes made in given (since split) onto current.
-        Map<String, String> newFTB = new TreeMap<String, String>(curCmt.fileToBlob);
 
         // Create a big set including all files related, so that all edge cases being handled
         Set<String> allFiles= new HashSet<>();
         allFiles.addAll(givenCmt.fileToBlob.keySet());
         allFiles.addAll(curCmt.fileToBlob.keySet());
         allFiles.addAll(spCmt.fileToBlob.keySet());
+
+        boolean conflicted = false;
 
         for (String file : allFiles) {
             String givenBlobHash = givenCmt.fileToBlob.get(file);
@@ -612,7 +630,7 @@ public class Repository {
                     // 1. modified in the given branch since the split point, but not modified in the current branch since the split point
                     // changed to  version in the given branch, then all be automatically staged
                     if (!Objects.equals(spBlobHash, givenBlobHash) && Objects.equals(spBlobHash, curBlobHash)) {
-                        newFTB.put(file, givenBlobHash);
+                        writeCmtFileToCWD(givenCmt, file);
                         index.put(file, givenBlobHash);
                         continue;
                     }
@@ -626,7 +644,8 @@ public class Repository {
                     // 6. present at the split point, unmodified in the current branch, and absent in the given branch
                     // should be removed (and untracked).
                     if (Objects.equals(spBlobHash, curBlobHash)) {
-                        newFTB.remove(file);
+                        File fileToBeDel = join(CWD, file);
+                        restrictedDelete(fileToBeDel);
                         index.remove(file);
                         continue;
                     }
@@ -655,31 +674,77 @@ public class Repository {
                 // 5. not present at the split point and are present only in the given branch
                 // should be checked out and staged.
                 if (curBlobHash == null) {
-                    newFTB.put(file, givenBlobHash);
+                    writeCmtFileToCWD(givenCmt, file);
                     index.put(file, givenBlobHash);
                     continue;
                 }
             }
 
-            // conflict
+            // if none of above satisfied then it's a conflict merge
             // modified in different ways in the current and given branches are in conflict.
             // “Modified in different ways” can mean that the contents of both are changed and different from other,
             // or the contents of one are changed and the other file is deleted,
             // or the file was absent at the split point and has different contents in the given and current branches.
+            // replace the contents of the conflicted file with
+            //<<<<<<< HEAD
+            //contents of file in current branch
+            //=======
+            //contents of file in given branch
+            //>>>>>>>
+
+            // get the file contents of cur and given
+            String curContents = null;
+            String givenContents = null;
+            if (curBlobHash == null) {
+                curContents = null;
+                File givenBlobFile = join(BLOBS_DIR,givenBlobHash);
+                givenContents = readContentsAsString(givenBlobFile);
+            }
+            else if (givenBlobHash == null) {
+                givenContents = null;
+                File curBlobFile = join(BLOBS_DIR,curBlobHash);
+                curContents = readContentsAsString(curBlobFile);
+            }
+            else {
+                File curBlobFile = join(BLOBS_DIR,curBlobHash);
+                curContents = readContentsAsString(curBlobFile);
+
+                File givenBlobFile = join(BLOBS_DIR,givenBlobHash);
+                givenContents = readContentsAsString(givenBlobFile);
+            }
 
 
+            // new file contents
+            String newFileContents = "<<<<<<< HEAD\n" + curContents + "curContents\n" + givenContents +">>>>>>>\n";
 
+            // overwrite / create file with conflict, in CWD
+            File workingFile = join(CWD, file);
+            if (!workingFile.exists()) {
+                workingFile.createNewFile();
+            }
+            writeContents(workingFile, newFileContents);
 
+            // write it as blob
+            String newBlobHash = writeBlobObj(file);
+
+            //
+            index.put(file, newBlobHash);
+            conflicted = true;
         }
 
+        String msg = "Merged " + givenBranch + " into " + curBranch + ".";
+        commit(msg, givenCmtHash);
 
+        if (conflicted) {
+            message("Encountered a merge conflict.");
+        }
 
     }
 
 
 
 
-
+// -----------------------------------------------------------------------------------------------------------
 
 
     /**
@@ -726,24 +791,6 @@ public class Repository {
             index = temp;
         }
         return index;
-    }
-
-    /**
-     * @return true if the working file content identical to its version in current commit.
-     */
-    static Boolean fileEqualsCurCmt(String fileName) {
-
-        File fileToAdd = join(CWD, fileName);
-        String fileHash = sha1(readContents(fileToAdd));
-        // read current commit obj version of this file's sha1
-        Commit curCommit = getCommit(getHead());
-        String curCmtFileSha = curCommit.fileToBlob.get(fileName);
-
-        boolean fileEqualsCurCmt = false;
-        if (curCmtFileSha != null && curCmtFileSha.equals(fileHash)) {
-            fileEqualsCurCmt = true;
-        }
-        return fileEqualsCurCmt;
     }
 
     /**
