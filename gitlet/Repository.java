@@ -639,6 +639,10 @@ public class Repository {
                     if (curBlobHash == null && Objects.equals(spBlobHash, givenBlobHash)) {
                         continue;
                     }
+                    // if file present in three commits.
+                    if (curBlobHash != null && Objects.equals(spBlobHash, curBlobHash) && Objects.equals(spBlobHash, givenBlobHash)) {
+                        continue;
+                    }
                 }
                 else { // given == null
                     // 6. present at the split point, unmodified in the current branch, and absent in the given branch
@@ -680,7 +684,7 @@ public class Repository {
                 }
             }
 
-            // if none of above satisfied then it's a conflict merge
+            // if none of above satisfied then it's a conflict file
             // modified in different ways in the current and given branches are in conflict.
             // “Modified in different ways” can mean that the contents of both are changed and different from other,
             // or the contents of one are changed and the other file is deleted,
@@ -715,7 +719,7 @@ public class Repository {
 
 
             // new file contents
-            String newFileContents = "<<<<<<< HEAD\n" + curContents + "curContents\n" + givenContents +">>>>>>>\n";
+            String newFileContents = "<<<<<<< HEAD\n" + curContents + "=======\n" + givenContents +">>>>>>>\n";
 
             // overwrite / create file with conflict, in CWD
             File workingFile = join(CWD, file);
@@ -731,6 +735,9 @@ public class Repository {
             index.put(file, newBlobHash);
             conflicted = true;
         }
+
+        // write index object.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        writeObject(INDEX, index);
 
         String msg = "Merged " + givenBranch + " into " + curBranch + ".";
         commit(msg, givenCmtHash);
@@ -903,18 +910,5 @@ public class Repository {
         // 5. return the set of ancestors
         return acsts;
     }
-    /**
-     * check if target is ancestor of other.
-     * @param target target commit's hash.
-     * @return true if target commit is ancestor of other commit(s)
-     */
 
-    static Boolean isAncestor(String target, String other) {
-        Boolean isAncestor = false;
-        Set<String> acsts = getAncestors(other);
-        if (acsts.contains(target)) {
-            isAncestor = true;
-        }
-        return isAncestor;
-    }
 }

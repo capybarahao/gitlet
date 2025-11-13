@@ -78,7 +78,7 @@ public class Commit implements Serializable {
 
     public void setTimestamp() {
         this.timestamp = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
-        this.timestampString = formattedTime(timestamp);
+        this.timestampString = formattedTime(this.timestamp);
     }
 
     public String getTimestampString() {
@@ -86,6 +86,9 @@ public class Commit implements Serializable {
     }
 
     public ZonedDateTime getTimestamp() {
+        if (timestamp == null && timestampString != null) {
+            timestamp = ZonedDateTime.parse(timestampString);
+        }
         return timestamp;
     }
 
@@ -106,7 +109,7 @@ public class Commit implements Serializable {
     }
 
     public Set<String> getParents() {
-        Set<String> parents = null;
+        Set<String> parents = new HashSet<>();
         String pa = getParentA();
         String pb = getParentB();
         if (pa != null) {

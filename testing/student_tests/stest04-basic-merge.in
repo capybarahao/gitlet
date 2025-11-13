@@ -1,0 +1,84 @@
+# Integration test for basic merge in Gitlet
+I definitions.inc
+> init
+<<<
+# Create initial file wug.txt
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "Initial wug.txt"
+<<<
+# Create and modify notwug.txt
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "Add notwug.txt"
+<<<
+# Create feature branch
+> branch feature
+<<<
+# Switch to feature branch and add feature_wug.txt
+> checkout feature
+<<<
++ feature_wug.txt feature_wug.txt
+> add feature_wug.txt
+<<<
+> commit "Add feature_wug.txt on feature branch"
+<<<
+# Modify wug.txt on feature branch
++ wug.txt wug_new.txt
+> add wug.txt
+<<<
+> commit "Modify wug.txt on feature branch"
+<<<
+# Capture commit history
+> log
+===
+${COMMIT_HEAD}
+Modify wug.txt on feature branch
+
+===
+${COMMIT_HEAD}
+Add feature_wug.txt on feature branch
+
+===
+${COMMIT_HEAD}
+Add notwug.txt
+
+===
+${COMMIT_HEAD}
+Initial wug.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+# Store commit UIDs
+# Modify wug.txt on feature branch
+D UID1 "${1}"
+# Add feature_wug.txt on feature branch
+D UID2 "${2}"
+# Add notwug.txt
+D UID3 "${3}"
+# Initial wug.txt
+D UID4 "${4}"
+
+# Switch to master branch and add stray.txt
+> checkout master
+<<<
++ stray.txt stray.txt
+> add stray.txt
+<<<
+> commit "Add stray.txt on master"
+<<<
+# merge feature
+> merge feature
+<<<
+# Verify merge result
+= notwug.txt notwug.txt
+= wug.txt wug_new.txt
+= stray.txt stray.txt
+= feature_wug.txt feature_wug.txt
+
+
