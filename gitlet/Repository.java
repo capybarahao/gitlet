@@ -213,13 +213,7 @@ public class Repository {
     // print the error message
     // No reason to remove the file.
     public static void rm(String fileName) {
-        // if the file not exist, print error msg and exit
-        List<String> plainFiles = plainFilenamesIn(CWD);
-        assert plainFiles != null;
-        if (!plainFiles.contains(fileName)) {
-            message("File does not exist.");
-            System.exit(0);
-        }
+
         TreeMap<String, String> index = readIndex();
         Commit cmt = getCommit(getHead());
         File fileToRm = join(CWD, fileName);

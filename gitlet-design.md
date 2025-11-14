@@ -23,6 +23,7 @@ Get started in 7.25
 
 - "ANY recursive algorithm can be implemented using iteration and a stack."
 
+- java serialize an object, and will serialize any objects this object point to. thus causing the timestamp object null issue.
 ## Testing Command
 - make 
 - make clean

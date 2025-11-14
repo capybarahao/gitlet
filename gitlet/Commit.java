@@ -64,7 +64,8 @@ public class Commit implements Serializable {
 
         DateTimeFormatter formatter = DateTimeFormatter
                 .ofPattern("EEE MMM dd HH:mm:ss yyyy Z")
-                .withZone(ZoneId.of("Asia/Shanghai"));
+                .withZone(ZoneId.of("Asia/Shanghai"))
+                .withLocale(Locale.ENGLISH);
         return formatter.format(timestamp).toString();
     }
 
@@ -87,7 +88,11 @@ public class Commit implements Serializable {
 
     public ZonedDateTime getTimestamp() {
         if (timestamp == null && timestampString != null) {
-            timestamp = ZonedDateTime.parse(timestampString);
+            DateTimeFormatter formatter = DateTimeFormatter
+                    .ofPattern("EEE MMM dd HH:mm:ss yyyy Z")
+                    .withZone(ZoneId.of("Asia/Shanghai"))
+                    .withLocale(Locale.ENGLISH);
+            timestamp = ZonedDateTime.parse(timestampString, formatter);
         }
         return timestamp;
     }
