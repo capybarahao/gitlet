@@ -473,7 +473,7 @@ public class Repository {
             System.exit(0);
         }
 
-        restrictedDelete(branchFile);
+        branchFile.delete();
 
     }
 
