@@ -694,12 +694,12 @@ public class Repository {
             String curContents = null;
             String givenContents = null;
             if (curBlobHash == null) {
-                curContents = null;
+                curContents = "";
                 File givenBlobFile = join(BLOBS_DIR,givenBlobHash);
                 givenContents = readContentsAsString(givenBlobFile);
             }
             else if (givenBlobHash == null) {
-                givenContents = null;
+                givenContents = "";
                 File curBlobFile = join(BLOBS_DIR,curBlobHash);
                 curContents = readContentsAsString(curBlobFile);
             }

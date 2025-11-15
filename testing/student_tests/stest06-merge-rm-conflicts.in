@@ -1,0 +1,40 @@
+# Create two branches and merge other into master with a conflict caused by
+# a file changed in one and removed in the other.
+
+I definitions.inc
+> init
+<<<
+# Create initial file wug.txt
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "Initial wug.txt"
+<<<
+# Create notwug.txt
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "Add notwug.txt"
+<<<
+# Create feature branch
+> branch feature
+<<<
+# change wug in master
++ wug.txt stray.txt
+> add wug.txt
+<<<
+> commit "change wug in master"
+<<<
+> checkout feature
+<<<
+> rm wug.txt
+<<<
+> commit "rm wug in feature"
+<<<
+> checkout master
+<<<
+> merge feature
+Encountered a merge conflict.
+<<<
+
+
