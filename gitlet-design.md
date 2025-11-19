@@ -3,10 +3,8 @@
 **Name**: Qiyue Hao
 
 Get started in 7.25
-- logic delegation
-- what in main what not, if not then in where
+- logic delegation: what in main what not, if not then in where
 - Main class should mostly be calling helper methods in the the Repository class
--  A Gitlet system is considered “initialized” in a particular location if it has a .gitlet directory there
 
 - file separator in Win / MacOS issue. Don't hardcode / or \ !! read "Things to avoid" in spec
 - Be careful using a HashMap when serializing! The order of things within the HashMap is non-deterministic.
@@ -14,10 +12,9 @@ Get started in 7.25
 
 - choice of data structure for storing file contents: not assume file as texts/strings but binary files. store them as byte[] instead of string.
 
-- INDEX stores both add and remove info? 
 - learning: index is kind of never cleared to empty, it always reflects the head commit mapping. 
 
-- "ANY recursive algorithm can be implemented using iteration and a stack."
+- Recursion: "ANY recursive algorithm can be implemented using iteration and a stack."
 
 - java serialize an object, and will serialize any objects this object point to. thus causing the timestamp object null issue.
 ## Testing Command
@@ -180,7 +177,7 @@ Reports repository state:
 - **Branches**: Lists all branch names; current branch prefixed with `*`.
 - **Staged Files**: Files in staging area with modified or new content vs. HEAD.
 - **Removed Files**: Files in HEAD commit but absent from staging area.
-- (Placeholder sections for modified/untracked files.)
+- (Placeholder sections for modified/untracked files.) Not implemented.
 
 ---
 

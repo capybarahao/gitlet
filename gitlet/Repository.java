@@ -231,6 +231,8 @@ public class Repository {
 
     }
 
+    // following the first parent commit links, ignoring any second parents found in merge commits.
+    // (In regular Git, this is what you get with git log --first-parent)
     public static void log() {
         String cmtHash = getHead();
         Commit p = getCommit(cmtHash);
@@ -241,7 +243,6 @@ public class Repository {
             System.out.printf("commit %s%n", cmtHash);
             // if a merged commit print merge info line
             // "Merge: 4975af1 2c1ead1"
-            // Todo: after doing merge:
             //  The first parent is the branch you were on when you did the merge; the second is that of the merged-in branch.
 
             if (p.getParentB() != null) {
@@ -269,7 +270,6 @@ public class Repository {
             System.out.printf("commit %s%n", cmt);
             // if a merged commit print merge info line
             // "Merge: 4975af1 2c1ead1"
-            // Todo: after doing merge:
             //  The first parent is the branch you were on when you did the merge; the second is that of the merged-in branch.
 
             if (p.getParentB() != null) {
